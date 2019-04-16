@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.0" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.1.0',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="MyBatis与Spring的结合依赖于MyBatis-Spring。MyBatis-Spring会帮助你将MyBatis代码无缝地整合到Spring中。使用这个类库中的类，Spring将会加载必要的MyBatis工厂类和session类。这个类库也提供一个简单的方式来注入MyBatis数据映射器和SqlSession到业务层的bean中。而且它也会处理事务，翻译MyBatis的异常到Spring">
+<meta name="keywords" content="myBatis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="myBatis-spring结合及源码分析">
+<meta property="og:url" content="http://mocwe.com/2018/04/15/mybatis-myBatis-spring结合及源码分析/index.html">
+<meta property="og:site_name" content="每天进步一小点">
+<meta property="og:description" content="MyBatis与Spring的结合依赖于MyBatis-Spring。MyBatis-Spring会帮助你将MyBatis代码无缝地整合到Spring中。使用这个类库中的类，Spring将会加载必要的MyBatis工厂类和session类。这个类库也提供一个简单的方式来注入MyBatis数据映射器和SqlSession到业务层的bean中。而且它也会处理事务，翻译MyBatis的异常到Spring">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-04-16T04:41:53.480Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="myBatis-spring结合及源码分析">
+<meta name="twitter:description" content="MyBatis与Spring的结合依赖于MyBatis-Spring。MyBatis-Spring会帮助你将MyBatis代码无缝地整合到Spring中。使用这个类库中的类，Spring将会加载必要的MyBatis工厂类和session类。这个类库也提供一个简单的方式来注入MyBatis数据映射器和SqlSession到业务层的bean中。而且它也会处理事务，翻译MyBatis的异常到Spring">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://mocwe.com/2018/04/15/mybatis-myBatis-spring结合及源码分析/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>myBatis-spring结合及源码分析 | 每天进步一小点</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+    <a href="https://github.com/ricklyh"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://camo.githubusercontent.com/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png"></a>
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">每天进步一小点</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">一切就是这么简单</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/04/15/mybatis-myBatis-spring结合及源码分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rick Liu">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar-user.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进步一小点">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">myBatis-spring结合及源码分析
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-04-15 16:12:04" itemprop="dateCreated datePublished" datetime="2018-04-15T16:12:04+08:00">2018-04-15</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-04-16 12:41:53" itemprop="dateModified" datetime="2019-04-16T12:41:53+08:00">2019-04-16</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/myBatis/" itemprop="url" rel="index"><span itemprop="name">myBatis</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>MyBatis与Spring的结合依赖于MyBatis-Spring。MyBatis-Spring会帮助你将MyBatis代码无缝地整合到Spring中。使用这个类库中的类，Spring将会加载必要的MyBatis工厂类和session类。这个类库也提供一个简单的方式来注入MyBatis数据映射器和SqlSession到业务层的bean中。而且它也会处理事务，翻译MyBatis的异常到Spring的DataAccessException异常（数据异常）。<br><a id="more"></a></p>
+<h1 id="Mybatis-Spring配置"><a href="#Mybatis-Spring配置" class="headerlink" title="Mybatis-Spring配置"></a>Mybatis-Spring配置</h1><h2 id="配置SqlSessionFactory"><a href="#配置SqlSessionFactory" class="headerlink" title="配置SqlSessionFactory"></a>配置SqlSessionFactory</h2><p>SqlSessionFactory的作用是生成SqlSession。MyBatis-Spring项目提供了<code>SqlSessionFactoryBean</code>类给我们去配置。一般而言，我们需要给出两个参数，一个是数据源，另一个是MyBatis的配置文件路径。示例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@Bean</span><br><span class="line">public SqlSessionFactory sqlSessionFactory() throws Exception &#123;</span><br><span class="line">    SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();</span><br><span class="line">    sqlSessionFactoryBean.setDataSource(dataSource());</span><br><span class="line">    PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();</span><br><span class="line">    sqlSessionFactoryBean.setMapperLocations(resolver.getResources(&quot;classpath:/love/wangqi/dao/xml/*.xml&quot;));</span><br><span class="line">    return sqlSessionFactoryBean.getObject();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="配置SqlSessionTemplate"><a href="#配置SqlSessionTemplate" class="headerlink" title="配置SqlSessionTemplate"></a>配置SqlSessionTemplate</h2><p>SqlSessionTemplate是一个模板类，通过调用SqlSession来完成工作。它有两种构建方法，一种是只有一个SqlSessionFactory作为参数；另一种有两个参数，一个是SqlSessionFactory，另一个是执行器类型，它是一个枚举类(<code>org.apache.ibatis.session.ExecutorType</code>)。示例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@Bean</span><br><span class="line">public SqlSessionTemplate sqlSessionTemplate() throws Exception &#123;</span><br><span class="line">    SqlSessionTemplate sqlSessionTemplate = new SqlSessionTemplate(sqlSessionFactory());</span><br><span class="line">    return sqlSessionTemplate;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>SqlSessionTemplate一般不建议使用。应尽量采用Mapper接口的编程方式，更符合面向对象的编程。</p>
+<h2 id="配置Mapper"><a href="#配置Mapper" class="headerlink" title="配置Mapper"></a>配置Mapper</h2><h3 id="MapperFactoryBean"><a href="#MapperFactoryBean" class="headerlink" title="MapperFactoryBean"></a>MapperFactoryBean</h3><p>在MyBatis中，Mapper只需要一个接口，而不是一个实现类，它是由MyBatis体系通过动态代理的形式生成代理对象去运行的，所以Spring也没有办法为其生成实现类。为了处理这个问题，MyBatis-Spring提供了一个MapperFactoryBean类作为中介，我们可以通过配置它来实现我们想要的Mapper。配置MapperFactoryBean有3个参数：</p>
+<ol>
+<li>mapperInterface：用来制定接口，当我们的接口继承了配置的接口，那么MyBatis就认为它是一个Mapper</li>
+<li>SqlSessionFactory：当SqlSessionTemplate属性不被配置的时候，MyBatis-Spring才会去设置它。</li>
+<li>SqlSessionTemplate：当它被设置的时候，SqlSessionFactory将被作废。</li>
+</ol>
+<p>实例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">@Bean</span><br><span class="line">public MapperFactoryBean userMapper() throws Exception &#123;</span><br><span class="line">    MapperFactoryBean&lt;UserMapper&gt; mapperFactoryBean = new MapperFactoryBean&lt;&gt;();</span><br><span class="line">    mapperFactoryBean.setSqlSessionFactory(sqlSessionFactory());</span><br><span class="line">    mapperFactoryBean.setMapperInterface(UserMapper.class);</span><br><span class="line">    return mapperFactoryBean;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样我们就可以使用这个接口进行编程了，它的效果等同于sqlSession.getMapper(UserMapper.class)。</p>
+<h3 id="MapperScannerConfigurer"><a href="#MapperScannerConfigurer" class="headerlink" title="MapperScannerConfigurer"></a>MapperScannerConfigurer</h3><p>一个复杂的系统存在许许多多的Mapper，如果需要一个一个配置，那么工作量会很大，不过MyBatis-Spring中提供了MapperScannerConfigurer来自动扫描我们的映射器，大大提高了效率。我们可以配置一下几个属性：</p>
+<ul>
+<li>basePackage：指定让Spring自动扫描什么包，它会逐层深入扫描</li>
+<li>annotationClass：表示如果类被这个注解标识的时候，才进行扫面</li>
+<li>sqlSessionFactoryBeanName：指定在Spring中定义sqlSessionFactory的bean名称。如果它被定义，sqlSessionFactory将不起作用。</li>
+<li>sqlSessionTemplateBeanName：指定在Spring中定义sqlSessionTemplate的bean的名称。如果它被定义，sqlSessionFactoryBeanName将不起作用。</li>
+<li>markerInterface：指定是实现了什么接口就认为它是Mapper。我们需要提供一个公共的接口去标记。</li>
+</ul>
+<p>示例如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@Bean</span><br><span class="line">public MapperScannerConfigurer mapperScannerConfigurer() &#123;</span><br><span class="line">    MapperScannerConfigurer mapperScannerConfigurer = new MapperScannerConfigurer();</span><br><span class="line">    mapperScannerConfigurer.setBasePackage(&quot;love.wangqi.dao&quot;);</span><br><span class="line">    return mapperScannerConfigurer;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="配置事务"><a href="#配置事务" class="headerlink" title="配置事务"></a>配置事务</h2><p>MyBatis和Spring结合后是使用Spring AOP去管理事务的，使用Spring AOP是相当简单的，它分为声明式事务和编程式事务两种。大部分场景下使用声明式事务就可以了。</p>
+<p>首先需要定义事务处理器：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@Bean</span><br><span class="line">public DataSourceTransactionManager transactionManager() &#123;</span><br><span class="line">    DataSourceTransactionManager transactionManager = new DataSourceTransactionManager();</span><br><span class="line">    transactionManager.setDataSource(dataSource());</span><br><span class="line">    return transactionManager;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后开启Spring的事务管理：在Config类加上<code>@EnableTransactionManagement</code>注解。</p>
+<p>Spring会自动使用任意存在的容器事务，在上面附加一个SqlSession。如果没有开启事务，或者需要基于事务配置，Spring会开启一个新的容器管理事务。</p>
+<h1 id="代码解析"><a href="#代码解析" class="headerlink" title="代码解析"></a>代码解析</h1><h2 id="SqlSessionFactory的生成"><a href="#SqlSessionFactory的生成" class="headerlink" title="SqlSessionFactory的生成"></a>SqlSessionFactory的生成</h2><p>SqlSessionFactory由<code>SqlSessionFactoryBean.getObject()</code>方法来创建：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public SqlSessionFactory getObject() throws Exception &#123;</span><br><span class="line">    if (this.sqlSessionFactory == null) &#123;</span><br><span class="line">        afterPropertiesSet();</span><br><span class="line">    &#125;</span><br><span class="line">    return this.sqlSessionFactory;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>getObject()</code>方法调用<code>afterPropertiesSet()</code>来生成<code>sqlSessionFactory</code>，<code>afterPropertiesSet()</code>方法调用<code>buildSqlSessionFactory()</code>方法，这个是真正构建<code>SqlSessionFactory</code>的方法：</p>
+<ol>
+<li>根据配置构建<code>Configuration</code></li>
+<li>根据<code>Configuration</code>调用<code>SqlSessionFactoryBuilder.build</code>方法来构建SqlSessionFactory</li>
+</ol>
+<p>这两个步骤和纯Mybatis构建<code>SqlSessionFactory</code>的步骤相似。</p>
+<h2 id="Mapper构建"><a href="#Mapper构建" class="headerlink" title="Mapper构建"></a>Mapper构建</h2><p>MyBatis-Spring相比于纯MyBatis提供了<code>MapperFactoryBean</code>和<code>MapperScannerConfigurer</code>来协助生成Mapper的bean实例，代替了MyBatis从<code>SqlSession</code>中手动获取Mapper，充分利用了Spring依赖注入的特性。</p>
+<h3 id="生成BeanDefinition"><a href="#生成BeanDefinition" class="headerlink" title="生成BeanDefinition"></a>生成BeanDefinition</h3><h4 id="MapperFactoryBean-1"><a href="#MapperFactoryBean-1" class="headerlink" title="MapperFactoryBean"></a>MapperFactoryBean</h4><p>首先分析一下MapperFactoryBean的工作原理。在Spring中bean实例的生成主要分为两步：生成BeanDefinition、生成Mapper实例。</p>
+<p>以我们的例子为例，userMapper在Config文件中被定义，因此它的BeanDefinition在处理Config文件的时候生成。</p>
+<p>代码的调用流程如下：</p>
+<ol>
+<li>AbstractApplicationContext.refresh</li>
+<li>AbstractApplicationContext.invokeBeanFactoryPostProcessors</li>
+<li>PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors</li>
+<li>PostProcessorRegistrationDelegate.invokeBeanDefinitionRegistryPostProcessors</li>
+<li>ConfigurationClassPostProcessor.postProcessBeanDefinitionRegistry</li>
+<li>ConfigurationClassPostProcessor.processConfigBeanDefinitions</li>
+</ol>
+<p>beanDefinition的生成在<code>processConfigBeanDefinitions</code>方法中完成，重点关注两个步骤：</p>
+<ol>
+<li><p>首先调用<code>parse</code>方法解析Config类，调用流程如下：</p>
+<ol>
+<li>ConfigurationClassParser.parse</li>
+<li>ConfigurationClassParser.processConfigurationClass</li>
+<li><p>ConfigurationClassParser.doProcessConfigurationClass</p>
+<p>在<code>doProcessConfigurationClass</code>方法中处理Config类中被<code>@Bean</code>注释的方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Set&lt;MethodMetadata&gt; beanMethods = retrieveBeanMethodMetadata(sourceClass);</span><br><span class="line">for (MethodMetadata methodMetadata : beanMethods) &#123;</span><br><span class="line">    configClass.addBeanMethod(new BeanMethod(methodMetadata, configClass));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+</ol>
+<pre><code>这段代码将Config类中被`@Bean`注释的方法封装成`BeanMethod`类，保存在configClass中。
+</code></pre><ol start="2">
+<li><p>调用<code>loadBeanDefinitions</code>方法加载configClass中注册的BeanDefinition，调用流程如下：</p>
+<ol>
+<li>ConfigurationClassBeanDefinitionReader.loadBeanDefinitions</li>
+<li><p>ConfigurationClassBeanDefinitionReader.loadBeanDefinitionsForConfigurationClass</p>
+<p>在<code>loadBeanDefinitionsForConfigurationClass</code>方法中加载Config类中被<code>@Bean</code>注释的方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">for (BeanMethod beanMethod : configClass.getBeanMethods()) &#123;</span><br><span class="line">    loadBeanDefinitionsForBeanMethod(beanMethod);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+</ol>
+<pre><code>遍历Config类中所有的BeanMethod，调用`loadBeanDefinitionForBeanMethod`将其加载为BeanDefinition，真实的类为`ConfigurationClassBeanDefinitionReader$ConfigurationClassBeanDefinition`。
+</code></pre><h4 id="MapperScannerConfigurer-1"><a href="#MapperScannerConfigurer-1" class="headerlink" title="MapperScannerConfigurer"></a>MapperScannerConfigurer</h4><p><code>MapperScannerConfigurer</code>和<code>MapperFactoryBean</code>一样，也定义在Config类中，使用<code>@Bean</code>注释。因此<code>MapperScannerConfigurer</code>本身BeanDefintion的生成流程和<code>MapperFactoryBean</code>是一样的。</p>
+<p>不同的是<code>MapperScannerConfigurer</code>继承了<code>BeanDefinitionRegistryPostProcessor</code>，它是一个可以注册BeanDefinition的类。</p>
+<p>在<code>PostProcessorRegistrationDelegate.invokeBeanFactoryProcessors</code>方法中，多次执行了<code>invokeBeanDefinitionRegistryPostProcessors</code>方法，它会调用<code>MapperScannerConfigurer</code>中的<code>postProcessBeanDefinitionRegistry</code>方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) &#123;</span><br><span class="line">    if (this.processPropertyPlaceHolders) &#123;</span><br><span class="line">        processPropertyPlaceHolders();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ClassPathMapperScanner scanner = new ClassPathMapperScanner(registry);</span><br><span class="line">    scanner.setAddToConfig(this.addToConfig);</span><br><span class="line">    scanner.setAnnotationClass(this.annotationClass);</span><br><span class="line">    scanner.setMarkerInterface(this.markerInterface);</span><br><span class="line">    scanner.setSqlSessionFactory(this.sqlSessionFactory);</span><br><span class="line">    scanner.setSqlSessionTemplate(this.sqlSessionTemplate);</span><br><span class="line">    scanner.setSqlSessionFactoryBeanName(this.sqlSessionFactoryBeanName);</span><br><span class="line">    scanner.setSqlSessionTemplateBeanName(this.sqlSessionTemplateBeanName);</span><br><span class="line">    scanner.setResourceLoader(this.applicationContext);</span><br><span class="line">    scanner.setBeanNameGenerator(this.nameGenerator);</span><br><span class="line">    scanner.registerFilters();</span><br><span class="line">    scanner.scan(StringUtils.tokenizeToStringArray(this.basePackage, ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>MapperScannerConfigurer.postProcessBeanDefinitionRegistry</code>方法中调用<code>ClassPathBeanDefinitionScanner.scan</code>方法来扫描package下定义的接口，它的调用流程如下：</p>
+<ol>
+<li>ClassPathBeanDefinitionScanner.scan</li>
+<li>ClassPathMapperScanner.doScan</li>
+<li>ClassPathBeanDefinitionScanner.doScan</li>
+<li>ClassPathMapperScanner.processBeanDefinition</li>
+</ol>
+<p><code>ClassPathMapperScanner.doScan</code>方法首先调用<code>ClassPathBeanDefinitionScanner.doScan</code>扫描指定的package，生成并注册BeanDefinition。BeanDefinition的真实类为<code>ScannedGenericBeanDefinition</code>。</p>
+<p>然后调用<code>ClassPathMapperScanner.processBeanDefinitions</code>来处理<code>doScan</code>方法返回的BeanDefinition，主要的功能就是：指定这个bean对应的类为<code>MapperFactoryBean</code>，设置一些属性值。</p>
+<h3 id="生成Mapper实例"><a href="#生成Mapper实例" class="headerlink" title="生成Mapper实例"></a>生成Mapper实例</h3><p>根据我们的例子，Mapper实例在我们生成被依赖实例的时候生成。换句话说，在<code>UserService</code>中注入<code>UserMapper</code>的时候生成<code>UserMapper</code>实例。调用流程如下：</p>
+<ol>
+<li>AbastractApplicationContext.finishBeanFactoryInitialization</li>
+<li>DefaultListableBeanFactory.preInstantiateSingletons</li>
+<li>AbstractBeanFactory.getBean</li>
+<li>AbstractBeanFactory.doGetBean</li>
+<li>DefaultSingletonBeanRegistry.getSingleton</li>
+<li>ObjectFactory.getObject</li>
+<li>AbstractAutowireCapableBeanFactory.createBean</li>
+<li>AbstractAutowireCapableBeanFactory.doCreateBean</li>
+</ol>
+<p>在<code>doCreateBean</code>方法中调用<code>createBeanInstance</code>创建<code>UserService</code>的bean实例，接着调用<code>populateBean</code>方法填充依赖的对象。调用流程如下：</p>
+<ol>
+<li>AbstractAutowireCapableBeanFactory.populateBean</li>
+<li>AutowiredAnnotationBeanPostProcessor.postProcessPropertyValues</li>
+<li>InjectionMetadata.inject</li>
+<li>AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.inject</li>
+<li>DefaultListableBeanFactory.resolveDependency</li>
+<li>DefaultListableBeanFactory.doResolveDependency</li>
+<li>DependencyDescriptor.resolveCandidate</li>
+</ol>
+<p><code>resolveCandidate</code>方法根据beanName、requiredType、beanFactory获取userMapper的bean实例。调用beanFactory.getBean方法来获取userMapper的bean实例。</p>
+<ol>
+<li>AbstractBeanFactory.getBean</li>
+<li>AbstractBeanFactory.doGetBean</li>
+<li>DefaultSingletonBeanRegistry.getSingleton</li>
+<li>ObjectFactory.getObject</li>
+<li>AbstractAutowireCapableBeanFactory.createBean</li>
+<li>AbstractAutowireCapableBeanFactory.doCreateBean</li>
+</ol>
+<p><code>AbstractAutowireCapableBeanFactory.doCreateBean</code>为<code>userMapper</code>创建了类为<code>MapperFactoryBean</code>的实例。</p>
+<p>回到<code>AbstractBeanFactory.doGetBean</code>，调用<code>DefaultSingletonBeanRegistry.getSingleton</code>获得<code>MapperFactoryBean</code>的实例之后接着调用<code>AbstractBeanFactory.getObjectForBeanInstance</code>方法检查bean实例是否是<code>FactoryBean</code>，如果是则返回由<code>FactoryBean</code>创建的Bean实例。调动流程如下：</p>
+<ol>
+<li>AbstractBeanFactory.getObjectForBeanInstance</li>
+<li>FactoryBeanRegistrySupport.getObjectFromFactoryBean</li>
+<li>FactoryBeanRegistrySupport.doGetObjectFromFactoryBean</li>
+<li>factory.getObject</li>
+</ol>
+<p><code>MapperFactoryBean.getObject</code>方法的代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public T getObject() throws Exception &#123;</span><br><span class="line">    return getSqlSession().getMapper(this.mapperInterface);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到<code>getObject</code>方法和原生Mybatis是一样的，通过SqlSession来获得UserMapper的实例，我们知道它是使用<code>MapperProxy</code>构建的代理类。</p>
+<h2 id="与Spring事务的结合"><a href="#与Spring事务的结合" class="headerlink" title="与Spring事务的结合"></a>与Spring事务的结合</h2><h3 id="事务代理类的生成"><a href="#事务代理类的生成" class="headerlink" title="事务代理类的生成"></a>事务代理类的生成</h3><p>我们来看看一段最简单的事务代码是如何执行的，它处于UserService中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">@Transactional</span><br><span class="line">public void insertUser(User user) &#123;</span><br><span class="line">    userMapper.insetUser(user);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们知道，userService的bean生成之后，需要调用<code>populateBean</code>方法来填充bean实例和<code>initializeBean</code>方法来初始化bean。<code>initializeBean</code>方法中会调用<code>AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsAfterInitialization</code>来遍历所有BeanPostProcessor的<code>postProcessAfterInitialization</code>方法。</p>
+<p>因为在Config文件中加入了<code>@EnableTransactionManagement</code>注释开启了事务支持，因此加入了名为<code>InfrastructureAdvisorAutoProxyCreator</code>的BeanPostProcessor。在<code>InfrastructureAdvisorAutoProxyCreator.postProcessAfterInitialization</code>方法中返回经过动态代理包装的UserService实例。调用流程如下：</p>
+<ol>
+<li>AbstractAutowireCapableBeanFactory.doCreateBean</li>
+<li>AbstractAutowireCapableBeanFactory.initializeBean</li>
+<li>AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsAfterInitialization</li>
+<li>AbstractAutoProxyCreator.postProcessAfterInitialization</li>
+<li>AbstractAutoProxyCreator.wrapIfNecessary</li>
+</ol>
+<p>在<code>AbstractAutoProxyCreator.wrapIfNecessary</code>方法中调用<code>AbstractAdvisorAutoProxyCreator.getAdvicesAndAdvisorsForBean</code>获取Advisor列表。这里能获取到一个<code>BeanFactoryTransactionAttributeSourceAdvisor</code>。</p>
+<p>Advisor列表不为空，则调用<code>AbstractAutoProxyCreator.createProxy</code>来创建代理。</p>
+<p>因此我们可以发现UserService最后生成的是一个由<code>JdkDynamicAopProxy</code>支持的代理类。</p>
+<h3 id="事务代理类的执行"><a href="#事务代理类的执行" class="headerlink" title="事务代理类的执行"></a>事务代理类的执行</h3><p>通过上文事务代理类的生成，我们知道了UserService的实例是一个由<code>JdkDynamicAopProxy</code>支持的代理类。</p>
+<p>于是，当执行<code>UserService.insertUser</code>方法时，执行的是<code>JdkDynamicAopProxy.invoke</code>方法。<code>invoke</code>方法中调用<code>AdvisedSupport.getInterceptorsAndDynamicInterceptionAdvice</code>来获取<code>insertUser</code>方法相关的拦截方法。调用流程如下：</p>
+<ol>
+<li>JdkDynamicAopProxy.invoke</li>
+<li>AdvisedSupport.getInterceptorsAndDynamicInterceptionAdvice</li>
+<li>DefaultAdvisorChainFactory.getInterceptorsAndDynamicInterceptionAdvice</li>
+<li>DefaultAdvisorAdapterRegistry.getInterceptors</li>
+</ol>
+<p><code>DefaultAdvisorAdapterRegistry.getInterceptors</code>方法中获取到<code>BeanFactoryTransactionAttributeSourceAdvisor</code>中的<code>MethodInterceptor</code>：<code>TransactionInterceptor</code>。</p>
+<p>回到<code>JdkDynamicAopProxy.invoke</code>方法，通过<code>AdvisedSupport.getInterceptorsAndDynamicInterceptionAdvice</code>方法获取了拦截器链。之后创建<code>ReflectiveMethodInvocation</code>，再调用<code>proceed</code>方法执行整个链条中的方法。调动流程如下：</p>
+<ol>
+<li>ReflectiveMethodInvocation.proceed</li>
+<li>TransactionInterceptor.invoke</li>
+<li>TransactionAspectSupport.invokeWithinTransaction</li>
+</ol>
+<p><code>TransactionAspectSupport.invokeWithinTransaction</code>方法有几个步骤：</p>
+<ol>
+<li>获取事务属性<code>TransactionAttribute</code>，包括事务传播行为、隔离级别等</li>
+<li>获取事务管理器<code>PlatformTransactionManager</code>，这是我们的在Config中定义的<code>DataSourceTransactionManager</code></li>
+<li><p>调用<code>TransactionAspectSupport.createTransactionIfNecessary</code>，返回<code>TransactionInfo</code></p>
+<p> 在该方法中调用<code>DataSourceTransactionManager.getTransaction</code>方法获取事务状态<code>TransactionStatus</code>。包括：获取连接、建立事务。建立的连接保存在<code>DataSourceTransactionObject</code>中，<code>DataSourceTransactionObject</code>保存在<code>DefaultTransactionStatus</code>中，<code>DefaultTransactionStatus</code>保存在<code>TransactionInfo</code>中。这个过程都在<code>DataSourceTransactionManager.doBegin</code>方法中执行。<code>doBegin</code>方法还有一个步骤，代码如下：</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if (txObject.isNewConnectionHolder()) &#123;</span><br><span class="line">    TransactionSynchronizationManager.bindResource(getDataSource(), txObject.getConnectionHolder());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<pre><code>这几句代码将建立的连接保存在`TransactionSynchronizationManager`的静态变量resources中，resources是一个`ThreadLocal`类型的变量。
+</code></pre><ol start="4">
+<li><p>调用<code>ReflectiveMethodInvocation.proceed</code>方法。在其中调用<code>UserService.insertUser</code>的真实方法，其中调用<code>UserMapper.insertUser</code>方法。</p>
+<p> 关于Mapper中方法的执行上一篇文章有过分析，这里我们关注<code>insertUser</code>方法中连接的获取。调用流程如下：</p>
+<ol>
+<li>BaseExecutor.getConnection</li>
+<li>SpringManagedTransaction.getConnection</li>
+<li>SpringManagedTransaction.openConnection</li>
+<li>DataSourceUtils.getConnection</li>
+<li>TransactionSynchronizationManager.getResource</li>
+<li><p>TransactionSynchronizationManager.doGetResource</p>
+<p><code>TransactionSynchronizationManager.doGetResource</code>方法的代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">private static Object doGetResource(Object actualKey) &#123;</span><br><span class="line">    Map&lt;Object, Object&gt; map = resources.get();</span><br><span class="line">    if (map == null) &#123;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line">    Object value = map.get(actualKey);</span><br><span class="line">    // Transparently remove ResourceHolder that was marked as void...</span><br><span class="line">    if (value instanceof ResourceHolder &amp;&amp; ((ResourceHolder) value).isVoid()) &#123;</span><br><span class="line">        map.remove(actualKey);</span><br><span class="line">        // Remove entire ThreadLocal if empty...</span><br><span class="line">        if (map.isEmpty()) &#123;</span><br><span class="line">            resources.remove();</span><br><span class="line">        &#125;</span><br><span class="line">        value = null;</span><br><span class="line">    &#125;</span><br><span class="line">    return value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，它从我们之前绑定连接的<code>resources</code>中获取连接。这里解释了为什么Spring中的事务和Mybatis执行使用了同一个连接。</p>
+</li>
+</ol>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/myBatis/" rel="tag"># myBatis</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/13/mybatis-myBatis入门/" rel="next" title="myBatis入门">
+                <i class="fa fa-chevron-left"></i> myBatis入门
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/12/java-Java日志工具类/" rel="prev" title="Java日志工具类">
+                Java日志工具类 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar-user.jpeg" alt="Rick Liu">
+            
+              <p class="site-author-name" itemprop="name">Rick Liu</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">8</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/ricklyh" title="GitHub &rarr; https://github.com/ricklyh" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:lyhuijavait@163.com" title="E-Mail &rarr; mailto:lyhuijavait@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                推荐阅读
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://ife.baidu.com/" title="http://ife.baidu.com/" rel="noopener" target="_blank">百度前端技术学院</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+              <div class="links-of-blogroll motion-element links-of-blogroll-block">
+                <div class="links-of-blogroll-title">
+                  <!-- modify icon to fire by szw -->
+                  <i class="fa fa-history fa-" aria-hidden="true"></i>
+                  近期文章
+                </div>
+                <ul class="links-of-blogroll-list">
+                  
+                  
+                    <li>
+                      <a href="/2019/04/12/maven-maven整理/" title="maven整理" target="_blank">maven整理</a>
+                    </li>
+                  
+                    <li>
+                      <a href="/2019/04/12/nginx-nginx安装/" title="nginx安装" target="_blank">nginx安装</a>
+                    </li>
+                  
+                    <li>
+                      <a href="/2019/04/12/nginx-nginx整理/" title="nginx整理" target="_blank">nginx整理</a>
+                    </li>
+                  
+                    <li>
+                      <a href="/2019/04/12/java-java线程同步/" title="java线程同步" target="_blank">java线程同步</a>
+                    </li>
+                  
+                    <li>
+                      <a href="/2019/04/12/java-Java日志工具类/" title="Java日志工具类" target="_blank">Java日志工具类</a>
+                    </li>
+                  
+                </ul>
+              </div>
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Mybatis-Spring配置"><span class="nav-number">1.</span> <span class="nav-text">Mybatis-Spring配置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#配置SqlSessionFactory"><span class="nav-number">1.1.</span> <span class="nav-text">配置SqlSessionFactory</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置SqlSessionTemplate"><span class="nav-number">1.2.</span> <span class="nav-text">配置SqlSessionTemplate</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置Mapper"><span class="nav-number">1.3.</span> <span class="nav-text">配置Mapper</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MapperFactoryBean"><span class="nav-number">1.3.1.</span> <span class="nav-text">MapperFactoryBean</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MapperScannerConfigurer"><span class="nav-number">1.3.2.</span> <span class="nav-text">MapperScannerConfigurer</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置事务"><span class="nav-number">1.4.</span> <span class="nav-text">配置事务</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#代码解析"><span class="nav-number">2.</span> <span class="nav-text">代码解析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#SqlSessionFactory的生成"><span class="nav-number">2.1.</span> <span class="nav-text">SqlSessionFactory的生成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mapper构建"><span class="nav-number">2.2.</span> <span class="nav-text">Mapper构建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#生成BeanDefinition"><span class="nav-number">2.2.1.</span> <span class="nav-text">生成BeanDefinition</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MapperFactoryBean-1"><span class="nav-number">2.2.1.1.</span> <span class="nav-text">MapperFactoryBean</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MapperScannerConfigurer-1"><span class="nav-number">2.2.1.2.</span> <span class="nav-text">MapperScannerConfigurer</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#生成Mapper实例"><span class="nav-number">2.2.2.</span> <span class="nav-text">生成Mapper实例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与Spring事务的结合"><span class="nav-number">2.3.</span> <span class="nav-text">与Spring事务的结合</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#事务代理类的生成"><span class="nav-number">2.3.1.</span> <span class="nav-text">事务代理类的生成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事务代理类的执行"><span class="nav-number">2.3.2.</span> <span class="nav-text">事务代理类的执行</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Rick Liu</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.1.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.0"></script>
+
+  <script src="/js/motion.js?v=7.1.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/schemes/muse.js?v=7.1.0"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.0"></script>
+<script src="/js/post-details.js?v=7.1.0"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.0"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
