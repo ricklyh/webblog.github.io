@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.0" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '7.1.0',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="在 SpringBoot 项目中集成其他框架是非常简单的，如果需要添加 WebMvc，只需要引入对应的依赖 1234&amp;lt;dependency&amp;gt;        &amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/groupId&amp;gt;        &amp;lt;artifactId&amp;gt;spring-boot-starter-web&amp;lt;/artifa">
+<meta name="keywords" content="spring boot">
+<meta property="og:type" content="article">
+<meta property="og:title" content="EnableAutoConfiguration实战与原理">
+<meta property="og:url" content="http://mocwe.com/2018/06/05/spring-boot-EnableAutoConfiguration实战与原理/index.html">
+<meta property="og:site_name" content="每天进步一小点">
+<meta property="og:description" content="在 SpringBoot 项目中集成其他框架是非常简单的，如果需要添加 WebMvc，只需要引入对应的依赖 1234&amp;lt;dependency&amp;gt;        &amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/groupId&amp;gt;        &amp;lt;artifactId&amp;gt;spring-boot-starter-web&amp;lt;/artifa">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://mocwe.com/2018/06/05/spring-boot-EnableAutoConfiguration实战与原理/EnableAutoConfiguration.png">
+<meta property="og:image" content="http://mocwe.com/2018/06/05/spring-boot-EnableAutoConfiguration实战与原理/EnableAutoFlow.png">
+<meta property="og:updated_time" content="2019-04-19T09:03:57.241Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="EnableAutoConfiguration实战与原理">
+<meta name="twitter:description" content="在 SpringBoot 项目中集成其他框架是非常简单的，如果需要添加 WebMvc，只需要引入对应的依赖 1234&amp;lt;dependency&amp;gt;        &amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/groupId&amp;gt;        &amp;lt;artifactId&amp;gt;spring-boot-starter-web&amp;lt;/artifa">
+<meta name="twitter:image" content="http://mocwe.com/2018/06/05/spring-boot-EnableAutoConfiguration实战与原理/EnableAutoConfiguration.png">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://mocwe.com/2018/06/05/spring-boot-EnableAutoConfiguration实战与原理/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>EnableAutoConfiguration实战与原理 | 每天进步一小点</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+    <a href="https://github.com/ricklyh"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://camo.githubusercontent.com/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png"></a>
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">每天进步一小点</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+      
+        <p class="site-subtitle">一切就是这么简单</p>
+      
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/06/05/spring-boot-EnableAutoConfiguration实战与原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rick Liu">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar-user.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进步一小点">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">EnableAutoConfiguration实战与原理
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-06-05 11:12:04" itemprop="dateCreated datePublished" datetime="2018-06-05T11:12:04+08:00">2018-06-05</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-04-19 17:03:57" itemprop="dateModified" datetime="2019-04-19T17:03:57+08:00">2019-04-19</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/spring-boot/" itemprop="url" rel="index"><span itemprop="name">spring boot</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li><p>在 SpringBoot 项目中集成其他框架是非常简单的，如果需要添加 WebMvc，只需要引入对应的依赖</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>就可以了，这样就轻轻松松的把 WebMVC 给整合进来了，是不是超简单。就连 @EnableXX 注解都不需要，那是为什么呢？是时候来剖析其中的原理了。<br>SpringBoot 项目中通常是添加注解 @SpringBootApplication，这个注解集成了常用的几个注解：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@SpringBootConfiguration，@EnableAutoConfiguration，@ComponentScan</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果只是单纯的启动 SpringBoot 项目的话，只需要添加 @SpringBootConfiguration 注解就可以了。这样项目是虽然可以正常启动与使用，但是就失去了 SpringBoot 给我们带来的便利性。SpringBoot 整合其他框架通常会有各种 AutoConfiguration，但是必须得添加 @EnableAutoConfiguration 注解才可以使用。这里来解析下：<br>在 SpringBoot 官方文档中，特别说明了 META-INF/spring.factories 目录的使用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">43.1 Understanding auto-configured beans</span><br><span class="line">Under the hood, auto-configuration is implemented with standard @Configuration classes. Additional @Conditional annotations are used to constrain when the auto-configuration should apply. Usually auto-configuration classes use @ConditionalOnClass and @ConditionalOnMissingBean annotations. This ensures that auto-configuration only applies when relevant classes are found and when you have not declared your own @Configuration.</span><br><span class="line"></span><br><span class="line">You can browse the source code of spring-boot-autoconfigure to see the @Configuration classes that we provide (see the META-INF/spring.factories file).</span><br><span class="line"></span><br><span class="line">43.2 Locating auto-configuration candidates</span><br><span class="line">Spring Boot checks for the presence of a META-INF/spring.factories file within your published jar. The file should list your configuration classes under the EnableAutoConfiguration key.</span><br><span class="line"></span><br><span class="line">org.springframework.boot.autoconfigure.EnableAutoConfiguration=\</span><br><span class="line">com.mycorp.libx.autoconfigure.LibXAutoConfiguration,\</span><br><span class="line">com.mycorp.libx.autoconfigure.LibXWebAutoConfiguration</span><br><span class="line">You can use the @AutoConfigureAfter or @AutoConfigureBefore annotations if your configuration needs to be applied in a specific order. For example, if you provide web-specific configuration, your class may need to be applied after WebMvcAutoConfiguration.</span><br><span class="line"></span><br><span class="line">If you want to order certain auto-configurations that shouldn’t have any direct knowledge of each other, you can also use @AutoconfigureOrder. That annotation has the same semantic as the regular @Order annotation but provides a dedicated order for auto-configuration classes.</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>大致意思是说 SpringBoot 会自动解析所有 jar 中的 META-INF/spring.factories 文件。其中大部分自动配置文件都放在了 spring-boot-autoconfigure 的 jar 中，可以根据自己的需要去看看。<br>如果需要指定自动配置类的顺序，可以使用 @AutoConfigureAfter @AutoConfigureBefore、@AutoconfigureOrder 进行设置顺序。</p>
+<p>那么来解析下 @EnableAutoConfiguration 注解做了什么。</p>
+</li>
+</ul>
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><ul>
+<li><p>@EnableAutoConfiguration代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@SuppressWarnings(&quot;deprecation&quot;)</span><br><span class="line">@Target(ElementType.TYPE)</span><br><span class="line">@Retention(RetentionPolicy.RUNTIME)</span><br><span class="line">@Documented</span><br><span class="line">@Inherited</span><br><span class="line">@AutoConfigurationPackage</span><br><span class="line">@Import(EnableAutoConfigurationImportSelector.class)</span><br><span class="line">public @interface EnableAutoConfiguration &#123;</span><br><span class="line"></span><br><span class="line">String ENABLED_OVERRIDE_PROPERTY = &quot;spring.boot.enableautoconfiguration&quot;;</span><br><span class="line">//略。。。</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>发现这里使用了 @Import 注解，导入 EnableAutoConfigurationImportSelector 类。</p>
+<p>@Import 可以将对应的 Bean 导入到 Spring 上下文中。如果类在工程中的话那么直接使用 @Configuration 注解即可，Spring 会自动识别的。但是如果在其他 jar 包或框架上，没有配置到自动扫描的目录中或者是没有添加 @Configuration 注解，那么就需要使用 @Import 将其导入到项目中来。</p>
+<p>EnableAutoConfigurationImportSelector 继承了 AutoConfigurationImportSelector，实现了 isEnable 方法，当配置文件中配置 spring.boot.enableautoconfiguration=false 的时候，@EnableAutoConfiguration 功能为关闭状态，不进行其他自动逻辑处理。也就是所有的 EnableXX 框架都不能自动配置启动了。</p>
+<p>ImportSelector 核心作用就是：将方法 selectImports 中返回的类数组导入到 Spring 上下文中。</p>
+<p>AutoConfigurationImportSelector 间接的实现了 ImportSelector 接口，且实现为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public String[] selectImports(AnnotationMetadata annotationMetadata) &#123;</span><br><span class="line">  //配置spring.boot.enableautoconfiguration=false的时候不导入任何bean</span><br><span class="line">    if (!isEnabled(annotationMetadata)) &#123;</span><br><span class="line">        return NO_IMPORTS;</span><br><span class="line">    &#125;</span><br><span class="line">    try &#123;</span><br><span class="line">        AutoConfigurationMetadata autoConfigurationMetadata = AutoConfigurationMetadataLoader</span><br><span class="line">                .loadMetadata(this.beanClassLoader);</span><br><span class="line">        AnnotationAttributes attributes = getAttributes(annotationMetadata);</span><br><span class="line">        List&lt;String&gt; configurations = getCandidateConfigurations(annotationMetadata,</span><br><span class="line">                attributes);</span><br><span class="line">        configurations = removeDuplicates(configurations);</span><br><span class="line">        configurations = sort(configurations, autoConfigurationMetadata);</span><br><span class="line">        Set&lt;String&gt; exclusions = getExclusions(annotationMetadata, attributes);</span><br><span class="line">        checkExcludedClasses(configurations, exclusions);</span><br><span class="line">        configurations.removeAll(exclusions);</span><br><span class="line">        configurations = filter(configurations, autoConfigurationMetadata);</span><br><span class="line">        fireAutoConfigurationImportEvents(configurations, exclusions);</span><br><span class="line">        return configurations.toArray(new String[configurations.size()]);</span><br><span class="line">    &#125;</span><br><span class="line">    catch (IOException ex) &#123;</span><br><span class="line">        throw new IllegalStateException(ex);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>以上这部分代码就是自动配置的核心了，下面对以上的代码进行逐步分析：<br>AutoConfigurationMetadata autoConfigurationMetadata = AutoConfigurationMetadataLoader .loadMetadata(this.beanClassLoader);</p>
+</li>
+<li><p>这里读取了 META-INF/spring-autoconfigure-metadata.properties 配置文件，这个配置文件中配置了 SpringBoot 自动集成的各种 Enable 框架的执行条件，比如定义与其他 AutoConfiguration 框架的执行顺序，<br>需要哪些 Bean 在的时候才可以执行等。这里的功能就等价于 @AutoConfigureAfter @AutoConfigureBefore 注解的功能。<br>下面截取部分配置，感兴趣的可以到 spring-boot-autoconfig- 版本号 /META-INF/spring-autoconfigure-metadata.properties 文件中查看</p>
+<p><img src="/2018/06/05/spring-boot-EnableAutoConfiguration实战与原理/EnableAutoConfiguration.png" alt="EnableAutoConfiguration" title="Optional title"></p>
+</li>
+<li><p>这里读取 META-INF/spring.factories 配置文件中对应 key：org.springframework.boot.autoconfigure.EnableAutoConfiguration 所对应的类。<br>源码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">protected List&lt;String&gt; getCandidateConfigurations(AnnotationMetadata metadata,</span><br><span class="line">        AnnotationAttributes attributes) &#123;</span><br><span class="line">    List&lt;String&gt; configurations = SpringFactoriesLoader.loadFactoryNames(</span><br><span class="line">            getSpringFactoriesLoaderFactoryClass(), getBeanClassLoader());</span><br><span class="line">    Assert.notEmpty(configurations,</span><br><span class="line">            &quot;No auto configuration classes found in META-INF/spring.factories. If you &quot;</span><br><span class="line">                    + &quot;are using a custom packaging, make sure that file is correct.&quot;);</span><br><span class="line">    return configurations;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>  SpringFactoriesLoader.loadFactoryNames 方法中主要是加载 META-INF/spring.factories 文件，并且获取 key 为 EnableAutoConfiguration 类全名对应的属性值。感兴趣的可以继续跟入看看源码。</p>
+<p>  AnnotationAttributes attributes = getAttributes(annotationMetadata);<br>  这里读取 @EnableAutoConfiguration 注解中配置的 exclude，excludeName 两个属性值。</p>
+<p>  configurations = removeDuplicates(configurations);<br>  去除重复的引用，这里实现相当的简单，先将 list 转换有序的 set 对象，这样的话重复的类就被自动剔除了，然后再将 set 转换成 list。</p>
+<p>  configurations = sort(configurations, autoConfigurationMetadata);<br>  顾名思义，这里是对所有的自动配置 Bean 进行排序，使用的规则就是在上面获取到的配置文件的 autoConfigurationMetadata。</p>
+</li>
+<li><p>sort 的实现为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">  private List&lt;String&gt; sort(List&lt;String&gt; configurations,</span><br><span class="line">        AutoConfigurationMetadata autoConfigurationMetadata) throws IOException &#123;</span><br><span class="line">    configurations = new AutoConfigurationSorter(getMetadataReaderFactory(),</span><br><span class="line">            autoConfigurationMetadata).getInPriorityOrder(configurations);</span><br><span class="line">    return configurations;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>实际的排序功能是在 getInPriorityOrder 中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">public List&lt;String&gt; getInPriorityOrder(Collection&lt;String&gt; classNames) &#123;</span><br><span class="line">    final AutoConfigurationClasses classes = new AutoConfigurationClasses(</span><br><span class="line">            this.metadataReaderFactory, this.autoConfigurationMetadata, classNames);</span><br><span class="line">    List&lt;String&gt; orderedClassNames = new ArrayList&lt;String&gt;(classNames);</span><br><span class="line">    // Initially sort alphabetically</span><br><span class="line">    Collections.sort(orderedClassNames);</span><br><span class="line">    // Then sort by order</span><br><span class="line">    Collections.sort(orderedClassNames, new Comparator&lt;String&gt;() &#123;</span><br><span class="line"></span><br><span class="line">        @Override</span><br><span class="line">        public int compare(String o1, String o2) &#123;</span><br><span class="line">            int i1 = classes.get(o1).getOrder();</span><br><span class="line">            int i2 = classes.get(o2).getOrder();</span><br><span class="line">            return (i1 &lt; i2) ? -1 : (i1 &gt; i2) ? 1 : 0;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;);</span><br><span class="line">    // Then respect @AutoConfigureBefore @AutoConfigureAfter</span><br><span class="line">    orderedClassNames = sortByAnnotation(classes, orderedClassNames);</span><br><span class="line">    return orderedClassNames;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里的实现还是比较清晰的，先通过类名自然排序，然后根据 Bean 配置的 Order 排序 （@AutoConfigureOrder 或在配置文件中指定），最后根据 @AutoConfigureBefore @AutoConfigureAfter 注解中配置（配置文件中指定）的顺序关系进行排序。通过以上步骤，就将所有 AutoConfiguration 的顺序指定 ok 了。</p>
+<p>Set exclusions = getExclusions(annotationMetadata, attributes);<br>获取 EnableAutoConfiguration 注解中配置的 exclude，excludeName 与配置中配置的 spring.autoconfigure.exclude 对应的类。</p>
+<p>checkExcludedClasses(configurations, exclusions); configurations.removeAll(exclusions);<br>先对之前步骤获取到的需要剔除的类进行是否存在校验，如果在所有的 AutoConfiguration（configurations）中都不包含配置的类的话，那么说明配置有问题，直接抛出异常。如果都存在的话，那么从 configurations 去除需要排除的类。</p>
+<p>configurations = filter(configurations, autoConfigurationMetadata);<br>进行数据过滤。这里会获取系统中所有的 AutoConfigurationImportFilter 对象，通过循环调用 AutoConfigurationImportFilter.match 方法筛选出不符合条件的 AutoConfiguration 类。这样流程过后剩下的 AutoConfiguration 类就是符合我们系统的要求了。</p>
+<p>fireAutoConfigurationImportEvents(configurations, exclusions);<br>发送自动配置筛选完成事件（AutoConfigurationImportEvent），将筛选后的结果通知对应的（实现了 AutoConfigurationImportListener）的监听者，进行对应的操作。</p>
+<p>通过以上步骤后，就筛选出了符合需要的自动配置的类。针对以上步骤整理出的流程图如下：</p>
+<p> <img src="/2018/06/05/spring-boot-EnableAutoConfiguration实战与原理/EnableAutoFlow.png" alt="EnableAutoConfigurationFlow" title="Optional title"></p>
+</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>@EnableAutoConfiguration 会自动将工程中 META-INF/spring.factories 配置文件中 key 为 org.springframework.boot.autoconfigure.EnableAutoConfiguration 对应的所有类进行自动导入。<br>这也就是为什么 @EnableAutoConfiguration 是 SpringBoot 项目的标配注解了，如果没有导入这个注解所实现的功能，那么所有的自动配置功能将无法使用，也就失去了 SpringBoot 的方便性了。<br>如果需要配置自动配置类的加载顺序，可以在 META-INF/spring-autoconfigure-metadata.properties 进行配置。这里就可以解释为什么有的框架直接引入对应的 jar 就可以自动运行的原因（如 Web）。</li>
+</ul>
+<h2 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h2><ul>
+<li><p>有两个自动配置类 TestConfiguration，TestConfiguration2 代码基本一样。只在构造方法中打印出实例化后的类名和 init 信息，如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public class TestConfiguration &#123;</span><br><span class="line">private static Logger log = LoggerFactory.getLogger(TestConfiguration.class);</span><br><span class="line"></span><br><span class="line">public TestConfiguration() &#123;</span><br><span class="line">    log.info(&quot;=========&gt;TestConfiguration init!!!&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>然后将这两个类配置到工程中的 META-INF/spring.factories 文件中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.boot.autoconfigure.EnableAutoConfiguration=\</span><br><span class="line">com.cml.chat.lesson.lesson5.TestConfiguration,com.cml.chat.lesson.lesson5.TestConfiguration2</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>默认 Bean 的加载是按照类名的自然排序进行的，项目启动后输入的 log 为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">com.cml.chat.lesson.lesson5.TestConfiguration - =========&gt;TestConfiguration init!!!</span><br><span class="line">com.cml.chat.lesson.lesson5.TestConfiguration2 - =========&gt;TestConfiguration2 init!!!</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>此时如果想要 TestConfiguration2 优先于 TestConfiguration 执行，比如 TestConfiguration 需要依赖 TestConfiguration2 做的操作。<br>那么这时候就可以在 META-INF/spring-autoconfigure-metadata.properties 添加配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#order config</span><br><span class="line">com.cml.chat.lesson.lesson5.TestConfiguration=</span><br><span class="line">com.cml.chat.lesson.lesson5.TestConfiguration2=</span><br><span class="line">com.cml.chat.lesson.lesson5.TestConfiguration.AutoConfigureAfter=com.cml.chat.lesson.lesson5.TestConfiguration2</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>项目启动后输入 log：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">com.cml.chat.lesson.lesson5.TestConfiguration2 - =========&gt;TestConfiguration2 init!!!</span><br><span class="line">com.cml.chat.lesson.lesson5.TestConfiguration - =========&gt;TestConfiguration init!!!</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>TestConfiguration 在 TestConfiguration2 初始化之后了，这里可以完成注解对应的顺序功能和条件限制功能。</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/spring-boot/" rel="tag"># spring boot</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/06/03/spring-boot-ConfigurationProperties实战与原理/" rel="next" title="ConfigurationProperties实战与原理">
+                <i class="fa fa-chevron-left"></i> ConfigurationProperties实战与原理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/12/java-Java日志工具类/" rel="prev" title="Java日志工具类">
+                Java日志工具类 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar-user.jpeg" alt="Rick Liu">
+            
+              <p class="site-author-name" itemprop="name">Rick Liu</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">12</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/ricklyh" title="GitHub &rarr; https://github.com/ricklyh" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:lyhuijavait@163.com" title="E-Mail &rarr; mailto:lyhuijavait@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                推荐阅读
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://ife.baidu.com/" title="http://ife.baidu.com/" rel="noopener" target="_blank">百度前端技术学院</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+              <div class="links-of-blogroll motion-element links-of-blogroll-block">
+                <div class="links-of-blogroll-title">
+                  <!-- modify icon to fire by szw -->
+                  <i class="fa fa-history fa-" aria-hidden="true"></i>
+                  近期文章
+                </div>
+                <ul class="links-of-blogroll-list">
+                  
+                  
+                    <li>
+                      <a href="/2019/04/12/java-java线程同步/" title="java线程同步" target="_blank">java线程同步</a>
+                    </li>
+                  
+                    <li>
+                      <a href="/2019/04/12/maven-maven整理/" title="maven整理" target="_blank">maven整理</a>
+                    </li>
+                  
+                    <li>
+                      <a href="/2019/04/12/nginx-nginx安装/" title="nginx安装" target="_blank">nginx安装</a>
+                    </li>
+                  
+                    <li>
+                      <a href="/2019/04/12/nginx-nginx整理/" title="nginx整理" target="_blank">nginx整理</a>
+                    </li>
+                  
+                    <li>
+                      <a href="/2019/04/12/java-Java日志工具类/" title="Java日志工具类" target="_blank">Java日志工具类</a>
+                    </li>
+                  
+                </ul>
+              </div>
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#源码分析"><span class="nav-number">1.</span> <span class="nav-text">源码分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实战"><span class="nav-number">3.</span> <span class="nav-text">实战</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Rick Liu</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v7.1.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.0"></script>
+
+  <script src="/js/motion.js?v=7.1.0"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/schemes/muse.js?v=7.1.0"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.0"></script>
+<script src="/js/post-details.js?v=7.1.0"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.0"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
