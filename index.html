@@ -508,6 +508,909 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/07/03/jvm-jvm类加载机制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rick Liu">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar-user.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进步一小点">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2018/07/03/jvm-jvm类加载机制/" class="post-title-link" itemprop="url">jvm类加载机制</a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-07-03 11:10:34" itemprop="dateCreated datePublished" datetime="2018-07-03T11:10:34+08:00">2018-07-03</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-04-22 15:42:33" itemprop="dateModified" datetime="2019-04-22T15:42:33+08:00">2019-04-22</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/jvm/" itemprop="url" rel="index"><span itemprop="name">jvm</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="类加载器过程"><a href="#类加载器过程" class="headerlink" title="类加载器过程"></a>类加载器过程</h2><ul>
+<li>从类被加载到虚拟机内存中开始，到卸御出内存为止，它的整个生命周期分为7个阶段，加载(Loading)、验证(Verification)、准备(Preparation)、解析(Resolution)、初始化(Initialization)、使用(Using)、卸御(Unloading)。其中验证、准备、解析三个部分统称为连接<br><img src="/2018/07/03/jvm-jvm类加载机制/load1.png" alt="classLoad" title="Optional title"></li>
+</ul>
+<h3 id="加载"><a href="#加载" class="headerlink" title="加载"></a>加载</h3><ul>
+<li>在加载阶段，虚拟机主要完成三件事情：<ul>
+<li>通过一个类的全限定名（比如 com.danny.framework.t）来获取定义该类的二进制流</li>
+<li>将这个字节流所代表的静态存储结构转化为方法区的运行时存储结构</li>
+<li>在内存中生成一个代表这个类的 java.lang.Class 对象，作为程序访问方法区中这个类的外部接口</li>
+</ul>
+</li>
+</ul>
+<h3 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h3><ul>
+<li>验证的目的是为了确保 class 文件的字节流包含的内容符合虚拟机的要求，且不会危害虚拟机的安全</li>
+<li>文件格式验证：主要验证 class 文件中二进制字节流的格式，比如魔数是否已 0xCAFEBABY 开头、版本号是否正确等</li>
+<li>元数据验证：主要对字节码描述的信息进行语义分析，保证其符合 Java 语言规范，比如验证这个类是否有父类（java.lang.Object 除外），如果这个类不是抽象类，是否实现了父类或接口中没有实现的方法，等等</li>
+<li>字节码验证：字节码验证更为高级，通过数据流和控制流分析，确保程序是合法的、符合逻辑的</li>
+<li>符号引用验证：对类自身以外的信息进行匹配性校验，举个栗子，比如通过类的全限定名能否找到对应类、在类中能否找到字段名 / 方法名对应的字段 / 方法，如果符号引用验证失败，将抛出异常</li>
+</ul>
+<h3 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h3><ul>
+<li>正式为【类变量】分配内存并设置类变量【初始值】，这些变量所使用的内存都分配在方法区。注意分配内存的对象是“类变量”而不是实例变量，而且为其分配的是“初始值”，一般数值类型的初始值都为0，char类型的初始值为’\u0000’（常量池中一个表示Nul的字符串），boolean类型初始值为false，引用类型初始值为null</li>
+<li>但是加上final关键字比如public static final int value=123;在准备阶段会初始化value的值为123； </li>
+</ul>
+<h3 id="解析"><a href="#解析" class="headerlink" title="解析"></a>解析</h3><ul>
+<li>解析阶段是虚拟机将常量池内的符号引用替换为直接引用的过程<ul>
+<li>符号引用：简单的理解就是字符串，比如引用一个类，java.util.ArrayList 这就是一个符号引用，字符串引用的对象不一定被加载</li>
+<li>直接引用：指针或者地址偏移量。引用对象一定在内存（已经加载）</li>
+</ul>
+</li>
+</ul>
+<h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><ul>
+<li><p>在准备阶段，已经为类变量赋了初始值，在初始化阶段，则根据程序员通过程序定制的主观计划去初始化类变量的和其他资源，也可以从另一个角度来理解：初始化阶段是执行类构造器 <clinit>() 方法的过程，那 <clinit>() 到底是什么呢？</clinit></clinit></p>
+</li>
+<li><p>在准备阶段，已经为类变量赋了初始值，在初始化阶段，则根据程序员通过程序定制的主观计划去初始化类变量的和其他资源，也可以从另一个角度来理解：初始化阶段是执行类构造器 <clinit>() 方法的过程，那 <clinit>() 到底是什么呢？</clinit></clinit></p>
+</li>
+<li><p>下面看段代码来理解下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">public class Parent &#123;</span><br><span class="line">    static &#123;</span><br><span class="line">        System.out.println(&quot;Parent-静态代码块执行&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public Parent() &#123;</span><br><span class="line">        System.out.println(&quot;Parent-构造方法执行&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(&quot;Parent-非静态代码块执行&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public class Child extends Parent&#123;</span><br><span class="line">    private static int staticValue = 123;</span><br><span class="line">    private int noStaticValue=456;</span><br><span class="line"></span><br><span class="line">    static &#123;</span><br><span class="line">        System.out.println(&quot;Child-静态代码块执行&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public Child() &#123;</span><br><span class="line">        System.out.println(&quot;Child-构造方法执行&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    &#123;</span><br><span class="line">        System.out.println(&quot;Child-非静态代码块执行&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        Child child = new Child();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>看下面的运行结果之前可以先猜测一下结果是什么，运行结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Parent-静态代码块执行</span><br><span class="line">Child-静态代码块执行</span><br><span class="line">Parent-非静态代码块执行</span><br><span class="line">Parent-构造方法执行</span><br><span class="line">Child-非静态代码块执行</span><br><span class="line">Child-构造方法执行</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<ul>
+<li>上面的例子中可以看到一个类从加载到实例化的过程中，静态代码块、构造方法、非静态代码块的加载顺序。无法看到静态变量和非静态变量初始化的时间，静态变量的初始化和静态代码块的执行都是在类的初始化阶段 （<clinit>()） 完成，非静态变量和非静态代码块都是在实例的初始化阶段 （<init>()） 完成</init></clinit></li>
+</ul>
+<h2 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h2><h3 id="类加载器的作用"><a href="#类加载器的作用" class="headerlink" title="类加载器的作用"></a>类加载器的作用</h3><ul>
+<li><p>加载 class：类加载的加载阶段的第一个步骤，就是通过类加载器来完成的，类加载器的主要任务就是 “ 通过一个类的全限定名来获取描述此类的二进制字节流 ”，在这里，类加载器加载的二进制流并不一定要从 class 文件中获取，还可以从其他格式如zip文件中读取、从网络或数据库中读取、运行时动态生成、由其他文件生成（比如 jsp 生成 class 类文件）等</p>
+</li>
+<li><p>从程序员的角度来看，类加载器动态加载class文件到虚拟机中，并生成一个 java.lang.Class 实例，每个实例都代表一个 java 类，可以根据该实例得到该类的信息，还可以通过newInstance()方法生成该类的一个对象</p>
+</li>
+<li><p>确定类的唯一性：类加载器除了有加载类的作用，还有一个举足轻重的作用，对于每一个类，都需要由加载它的加载器和这个类本身共同确立这个类在 Java 虚拟机中的唯一性。也就是说，两个相同的类，只有是在同一个加载器加载的情况下才 “ 相等 ”，这里的 “ 相等 ” 是指代表类的 Class 对象的 equals() 方法、isAssignableFrom() 方法、isInstance() 方法的返回结果，也包括 instanceof 关键字对对象所属关系的判定结果</p>
+</li>
+</ul>
+<h3 id="类加载器的分类"><a href="#类加载器的分类" class="headerlink" title="类加载器的分类"></a>类加载器的分类</h3><ul>
+<li><p>以开发人员的角度来看，类加载器分为如下几种：启动类加载器（Bootstrap ClassLoader）、扩展类加载器（Extension ClassLoader）、应用程序类加载器（Application ClassLoader）和自定义类加载器（User ClassLoader），其中启动类加载器属于 JVM 的一部分，其他类加载器都用 java 实现，并且最终都继承自 java.lang.ClassLoader</p>
+</li>
+<li><p>启动类加载器（Bootstrap ClassLoader）是由 C/C++ 编译而来的，看不到源码，所以在 java.lang.ClassLoader 源码中看到的 Bootstrap ClassLoader 的定义是 native 的 private native Class findBootstrapClass(String name);。启动类加载器主要负责加载 JAVA_HOME\lib 目录或者被 -Xbootclasspath 参数指定目录中的部分类，具体加载哪些类可以通过 System.getProperty(“sun.boot.class.path”) 来查看</p>
+</li>
+<li><p>扩展类加载器（Extension ClassLoader）由 sun.misc.Launcher.ExtClassLoader 实现，负责加载 JAVA_HOME\lib\ext 目录或者被 java.ext.dirs 系统变量指定的路径中的所有类库，可以用通过 System.getProperty(“java.ext.dirs”) 来查看具体都加载哪些类</p>
+</li>
+<li><p>应用程序类加载器（Application ClassLoader）由 sun.misc.Launcher.AppClassLoader 实现，负责加载用户类路径（我们通常指定的 classpath）上的类，如果程序中没有自定义类加载器，应用程序类加载器就是程序默认的类加载器</p>
+</li>
+<li><p>自定义类加载器（User ClassLoader），JVM 提供的类加载器只能加载指定目录的类（jar 和 class），如果我们想从其他地方甚至网络上获取 class 文件，就需要自定义类加载器来实现，自定义类加载器主要都是通过继承 ClassLoader 或者它的子类来实现，但无论是通过继承 ClassLoader 还是它的子类，最终自定义类加载器的父加载器都是应用程序类加载器，因为不管调用哪个父类加载器，创建的对象都必须最终调用 java.lang.ClassLoader.getSystemClassLoader() 作为父加载器，getSystemClassLoader() 方法的返回值是 sun.misc.Launcher.AppClassLoader 即应用程序类加载器</p>
+</li>
+</ul>
+<h3 id="ClassLoader-与双亲委派模型"><a href="#ClassLoader-与双亲委派模型" class="headerlink" title="ClassLoader 与双亲委派模型"></a>ClassLoader 与双亲委派模型</h3><ul>
+<li><p>下面看一下类加载器 java.lang.ClassLoader 中的核心逻辑 loadClass() 方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">protected Class&lt;?&gt; loadClass(String name, boolean resolve)</span><br><span class="line">        throws ClassNotFoundException</span><br><span class="line">    &#123;</span><br><span class="line">        synchronized (getClassLoadingLock(name)) &#123;</span><br><span class="line">            // 检查该类是否已经加载过</span><br><span class="line">            Class c = findLoadedClass(name);</span><br><span class="line">            if (c == null) &#123;</span><br><span class="line">                long t0 = System.nanoTime();</span><br><span class="line">                try &#123;</span><br><span class="line">                    if (parent != null) &#123;//如果父加载器不为空，就用父加载器加载类</span><br><span class="line">                        c = parent.loadClass(name, false);</span><br><span class="line">                    &#125; else &#123;//如果父加载器为空，就用启动类加载器加载类</span><br><span class="line">                        c = findBootstrapClassOrNull(name);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; catch (ClassNotFoundException e) &#123;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                if (c == null) &#123;//如果上面用父加载器还没加载到类，就自己尝试加载</span><br><span class="line">                    long t1 = System.nanoTime();</span><br><span class="line">                    c = findClass(name);</span><br><span class="line">                    sun.misc.PerfCounter.getParentDelegationTime().addTime(t1 - t0);</span><br><span class="line">                    sun.misc.PerfCounter.getFindClassTime().addElapsedTimeFrom(t1);</span><br><span class="line">                    sun.misc.PerfCounter.getFindClasses().increment();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            if (resolve) &#123;</span><br><span class="line">                resolveClass(c);</span><br><span class="line">            &#125;</span><br><span class="line">            return c;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>这段代码的主要意思就是当一个类加载器加载类的时候，如果有父加载器就先尝试让父加载器加载，如果父加载器还有父加载器就一直往上抛，一直把类加载的任务交给启动类加载器，然后启动类加载器如果加载不到类就会抛出 ClassNotFoundException 异常，之后把类加载的任务往下抛，如下图：<br><img src="/2018/07/03/jvm-jvm类加载机制/ClassLoad.png" alt="classLoad" title="Optional title"></p>
+</li>
+<li><p>通过上图的类加载过程，就引出了一个比较重要的概念——双亲委派模型，如下图展示的层次关系，双亲委派模型要求除了顶层的启动类加载器之外，其他的类加载器都应该有一个父类加载器，但是这种父子关系并不是继承关系，而是像上面代码所示的组合关系<br><img src="/2018/07/03/jvm-jvm类加载机制/ClassLoad1.png" alt="classLoad" title="Optional title"></p>
+</li>
+<li><p>双亲委派模型的工作过程是，如果一个类加载器收到了类加载的请求，它首先不会加载类，而是把这个请求委派给它上一层的父加载器，每层都如此，所以最终请求会传到启动类加载器，然后从启动类加载器开始尝试加载类，如果加载不到（要加载的类不在当前类加载器的加载范围），就让它的子类尝试加载，每层都是如此</p>
+</li>
+<li><p>那么双亲委派模型有什么好处呢？最大的好处就是它让 Java 中的类跟类加载器一样有了 “ 优先级 ”。前面说到了对于每一个类，都需要由加载它的加载器和这个类本身共同确立这个类在 Java 虚拟机中的唯一性，比如 java.lang.Object 类（存放在 JAVA_HOME\lib\rt.jar 中），如果用户自己写了一个 java.lang.Object 类并且由自定义类加载器加载，那么在程序中是不是就是两个类？所以双亲委派模型对保证 Java 稳定运行至关重要</p>
+</li>
+</ul>
+<h3 id="思维导图"><a href="#思维导图" class="headerlink" title="思维导图"></a>思维导图</h3><p>   <img src="/2018/07/03/jvm-jvm类加载机制/load2.png" alt="classLoad" title="Optional title"></p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/06/29/jvm-jvm性能调优/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rick Liu">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar-user.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进步一小点">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2018/06/29/jvm-jvm性能调优/" class="post-title-link" itemprop="url">jvm性能调优</a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-06-29 15:21:45" itemprop="dateCreated datePublished" datetime="2018-06-29T15:21:45+08:00">2018-06-29</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-04-22 15:43:16" itemprop="dateModified" datetime="2019-04-22T15:43:16+08:00">2019-04-22</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/jvm/" itemprop="url" rel="index"><span itemprop="name">jvm</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><ul>
+<li>JVM 调优目标：使用较小的内存占用来获得较高的吞吐量或者较低的延迟</li>
+<li>程序在上线前的测试或运行中有时会出现一些大大小小的 JVM 问题，比如 cpu load 过高、请求延迟、tps 降低等，甚至出现内存泄漏（每次垃圾收集使用的时间越来越长，垃圾收集频率越来越高，每次垃圾收集清理掉的垃圾数据越来越少）、内存溢出导致系统崩溃，因此需要对 JVM 进行调优，使得程序在正常运行的前提下，获得更高的用户体验和运行效率</li>
+<li><p>这里有几个比较重要的指标：</p>
+<ul>
+<li><p>内存占用：程序正常运行需要的内存大小。</p>
+</li>
+<li><p>延迟：由于垃圾收集而引起的程序停顿时间。</p>
+</li>
+<li><p>吞吐量：用户程序运行时间占用户程序和垃圾收集占用总时间的比值</p>
+</li>
+</ul>
+</li>
+<li>当然，和 CAP 原则一样，同时满足一个程序内存占用小、延迟低、高吞吐量是不可能的，程序的目标不同，调优时所考虑的方向也不同，在调优之前，必须要结合实际场景，有明确的的优化目标，找到性能瓶颈，对瓶颈有针对性的优化，最后进行测试，通过各种监控工具确认调优后的结果是否符合目标</li>
+</ul>
+<h2 id="JVM调优工具"><a href="#JVM调优工具" class="headerlink" title="JVM调优工具"></a>JVM调优工具</h2><ul>
+<li><p>调优可以依赖、参考的数据有系统运行日志、堆栈错误信息、gc 日志、线程快照、堆转储快照等</p>
+<ul>
+<li>系统运行日志：系统运行日志就是在程序代码中打印出的日志，描述了代码级别的系统运行轨迹（执行的方法、入参、返回值等），一般系统出现问题，系统运行日志是首先要查看的日志</li>
+<li>堆栈错误信息：当系统出现异常后，可以根据堆栈信息初步定位问题所在，比如根据 java.lang.OutOfMemoryError: Java heap space 可以判断是堆内存溢出；根据 java.lang.StackOverflowError 可以判断是栈溢出；根据 java.lang.OutOfMemoryError: PermGen space 可以判断是方法区溢出等</li>
+<li>GC 日志：程序启动时用 -XX:+PrintGCDetails 和 -Xloggc:/data/jvm/gc.log 可以在程序运行时把 gc 的详细过程记录下来，或者直接配置 -verbose:gc 参数把 gc 日志打印到控制台，通过记录的 gc 日志可以分析每块内存区域 gc 的频率、时间等，从而发现问题，进行有针对性的优化</li>
+<li><p>比如如下一段 GC 日志：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">2018-08-02T14:39:11.560-0800: 10.171: [GC [PSYoungGen: 30128K-&gt;4091K(30208K)] 51092K-&gt;50790K(98816K), 0.0140970 secs] [Times: user=0.02 sys=0.03, real=0.01 secs] </span><br><span class="line">2018-08-02T14:39:11.574-0800: 10.185: [Full GC [PSYoungGen: 4091K-&gt;0K(30208K)] [ParOldGen: 46698K-&gt;50669K(68608K)] 50790K-&gt;50669K(98816K) [PSPermGen: 2635K-&gt;2634K(21504K)], 0.0160030 secs] [Times: user=0.03 sys=0.00, real=0.02 secs] </span><br><span class="line">2018-08-02T14:39:14.045-0800: 12.656: [GC [PSYoungGen: 14097K-&gt;4064K(30208K)] 64766K-&gt;64536K(98816K), 0.0117690 secs] [Times: user=0.02 sys=0.01, real=0.01 secs] </span><br><span class="line">2018-08-02T14:39:14.057-0800: 12.668: [Full GC [PSYoungGen: 4064K-&gt;0K(30208K)] [ParOldGen: 60471K-&gt;401K(68608K)] 64536K-&gt;401K(98816K) [PSPermGen: 2634K-&gt;2634K(21504K)], 0.0102020 secs] [Times: user=0.01 sys=0.00, real=0.01 secs]</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>上面一共是 4 条 GC 日志，来看第一行日志，2018-08-02T14:39:11.560-0800 是精确到了毫秒级别的 UTC 通用标准时间格式，配置了 -XX:+PrintGCDateStamps 这个参数可以跟随gc日志打印出这种时间戳，10.171是从 JVM 启动到发生 gc 经过的秒数。第一行日志正文开头的 [GC 说明这次 GC 没有发生 Stop-The-World（用户线程停顿），第二行日志正文开头的 [Full GC 说明这次 GC 发生了 Stop-The-World，所以说，[GC 和 [Full GC 跟新生代和老年代没关系，和垃圾收集器的类型有关系，如果直接调用 System.gc()，将显示 [Full GC(System)</p>
+</li>
+<li><p>接下来的 [PSYoungGen 、 [ParOldGen 表示 GC 发生的区域，具体显示什么名字也跟垃圾收集器有关，比如这里的 [PSYoungGen 表示 Parallel Scavenge 收集器，[ParOldGen 表示 Serial Old 收集器，此外，Serial 收集器显示 [DefNew，ParNew 收集器显示 [ParNew 等</p>
+</li>
+<li><p>再往后的 30128K-&gt;4091K(30208K) 表示进行了这次 gc 后，该区域的内存使用空间由 30128K 减小到 4091K，总内存大小为 30208K</p>
+</li>
+<li><p>每个区域 gc 描述后面的 51092K-&gt;50790K(98816K), 0.0140970 secs 进行了这次垃圾收集后，整个堆内存的内存使用空间由 51092K 减小到 50790K，整个堆内存总空间为 98816K，gc 耗时 0.0140970秒</p>
+</li>
+</ul>
+</li>
+<li><p>线程快照：顾名思义，根据线程快照可以看到线程在某一时刻的状态，当系统中可能存在请求超时、死循环、死锁等情况是，可以根据线程快照来进一步确定问题。通过执行虚拟机自带的“jstack pid”命令，可以dump出当前进程中线程的快照信息，更详细的使用和分析网上有很多例，这篇文章写到这里已经很长了就不过多叙述了，贴一篇博客供参考： <a href="http://www.cnblogs.com/kongzhongqijing/articles/3630264.html" target="_blank" rel="noopener">http://www.cnblogs.com/kongzhongqijing/articles/3630264.html</a></p>
+</li>
+<li><p>堆转储快照：程序启动时可以使用 -XX:+HeapDumpOnOutOfMemory 和 -XX:HeapDumpPath=/data/jvm/dumpfile.hprof，当程序发生内存溢出时，把当时的内存快照以文件形式进行转储（也可以直接用 jmap 命令转储程序运行时任意时刻的内存快照），事后对当时的内存使用情况进行分析</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="jvm自带调优工具说明"><a href="#jvm自带调优工具说明" class="headerlink" title="jvm自带调优工具说明"></a>jvm自带调优工具说明</h2><ul>
+<li><p>用 jps（JVM process Status）可以查看虚拟机启动的所有进程、执行主类的全名、JVM启动参数，比如当执行了 JPSTest 类中的 main 方法后（main 方法持续执行），执行 jps -l可看到下面的JPSTest类的 pid 为 31354，加上 -v 参数还可以看到JVM启动参数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">3265 </span><br><span class="line">32914 sun.tools.jps.Jps</span><br><span class="line">31353 org.jetbrains.jps.cmdline.Launcher</span><br><span class="line">31354 com.danny.test.code.jvm.JPSTest</span><br><span class="line">380</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>用jstat（JVM Statistics Monitoring Tool）监视虚拟机信息 jstat -gc pid 500 10：每 500 毫秒打印一次 Java 堆状况（各个区的容量、使用容量、gc 时间等信息），打印 10 次</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">S0C    S1C    S0U    S1U      EC       EU        OC         OU       MC     MU    CCSC   CCSU   YGC     YGCT    FGC    FGCT     GCT   </span><br><span class="line">11264.0 11264.0 11202.7  0.0   11776.0   1154.3   68608.0    36238.7     -      -      -      -        14    0.077   7      0.049    0.126</span><br><span class="line">11264.0 11264.0 11202.7  0.0   11776.0   4037.0   68608.0    36238.7     -      -      -      -        14    0.077   7      0.049    0.126</span><br><span class="line">11264.0 11264.0 11202.7  0.0   11776.0   6604.5   68608.0    36238.7     -      -      -      -        14    0.077   7      0.049    0.126</span><br><span class="line">11264.0 11264.0 11202.7  0.0   11776.0   9487.2   68608.0    36238.7     -      -      -      -        14    0.077   7      0.049    0.126</span><br><span class="line">11264.0 11264.0  0.0    0.0   11776.0   258.1    68608.0    58983.4     -      -      -      -        15    0.082   8      0.059    0.141</span><br><span class="line">11264.0 11264.0  0.0    0.0   11776.0   3076.8   68608.0    58983.4     -      -      -      -        15    0.082   8      0.059    0.141</span><br><span class="line">11264.0 11264.0  0.0    0.0   11776.0    0.0     68608.0     390.0      -      -      -      -        16    0.084   9      0.066    0.149</span><br><span class="line">11264.0 11264.0  0.0    0.0   11776.0    0.0     68608.0     390.0      -      -      -      -        16    0.084   9      0.066    0.149</span><br><span class="line">11264.0 11264.0  0.0    0.0   11776.0   258.1    68608.0     390.0      -      -      -      -        16    0.084   9      0.066    0.149</span><br><span class="line">11264.0 11264.0  0.0    0.0   11776.0   3012.8   68608.0     390.0      -      -      -      -        16    0.084   9      0.066    0.149</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>jstat 还可以以其他角度监视各区内存大小、监视类装载信息等，具体可以 google jstat 的详细用法</p>
+</li>
+<li><p>用 jmap（Memory Map for Java）查看堆内存信息 执行 jmap -histo pid 可以打印出当前堆中所有每个类的实例数量和内存占用，如下，class name 是每个类的类名（[B 是 byte 类型，[C是 char 类型，[I 是 int 类型），bytes 是这个类的所有示例占用内存大小，instances 是这个类的实例数量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">num     #instances         #bytes  class name</span><br><span class="line">----------------------------------------------</span><br><span class="line">   1:          2291       29274080  [B</span><br><span class="line">   2:         15252        1961040  &lt;methodKlass&gt;</span><br><span class="line">   3:         15252        1871400  &lt;constMethodKlass&gt;</span><br><span class="line">   4:         18038         721520  java.util.TreeMap$Entry</span><br><span class="line">   5:          6182         530088  [C</span><br><span class="line">   6:         11391         273384  java.lang.Long</span><br><span class="line">   7:          5576         267648  java.util.TreeMap</span><br><span class="line">   8:            50         155872  [I</span><br><span class="line">   9:          6124         146976  java.lang.String</span><br><span class="line">  10:          3330         133200  java.util.LinkedHashMap$Entry</span><br><span class="line">  11:          5544         133056  javax.management.openmbean.CompositeDataSupport</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行 jmap -dump 可以转储堆内存快照到指定文件，比如执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jmap -dump:format=b,file=/data/jvm/dumpfile_jmap.hprof 3361</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<ul>
+<li><p>利用 jconsole、jvisualvm 分析内存信息（各个区如 Eden、Survivor、Old 等内存变化情况），如果查看的是远程服务器的 JVM，程序启动需要加上如下参数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&quot;-Dcom.sun.management.jmxremote=true&quot; </span><br><span class="line">&quot;-Djava.rmi.server.hostname=12.34.56.78&quot; </span><br><span class="line">&quot;-Dcom.sun.management.jmxremote.port=18181&quot; </span><br><span class="line">&quot;-Dcom.sun.management.jmxremote.authenticate=false&quot; </span><br><span class="line">&quot;-Dcom.sun.management.jmxremote.ssl=false&quot;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>下图是 jconsole 界面，概览选项可以观测堆内存使用量、线程数、类加载数和 CPU 占用率；内存选项可以查看堆中各个区域的内存使用量和左下角的详细描述（内存大小、GC 情况等）；线程选项可以查看当前 JVM 加载的线程，查看每个线程的堆栈信息，还可以检测死锁；VM 概要描述了虚拟机的各种详细参数<br><img src="/2018/06/29/jvm-jvm性能调优/jconsole.png" alt="jconsole" title="Optional title"></p>
+</li>
+<li><p>下图是 jvisualvm 的界面，功能比 jconsole 略丰富一些，不过大部分功能都需要安装插件。</p>
+<p>概述跟 jconsole 的 VM 概要差不多，描述的是 jvm 的详细参数和程序启动参数；监视展示的和 jconsole 的概览界面差不多（CPU、堆/方法区、类加载、线程）；线程和 jconsole 的线程界面差不多；抽样器可以展示当前占用内存的类的排行榜及其实例的个数；Visual GC 可以更丰富地展示当前各个区域的内存占用大小及历史信息（下图）<br><img src="/2018/06/29/jvm-jvm性能调优/jvisualvm.png" alt="jvisualvm" title="Optional title"></p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="分析堆转储快照"><a href="#分析堆转储快照" class="headerlink" title="分析堆转储快照"></a>分析堆转储快照</h2><ul>
+<li><p>前面说到配置了 -XX:+HeapDumpOnOutOfMemory 参数可以在程序发生内存溢出时 dump 出当前的内存快照，也可以用 jmap 命令随时 dump 出当时内存状态的快照信息，dump 的内存快照一般是以 .hprof 为后缀的二进制格式文件</p>
+<ul>
+<li><p>可以直接用 jhat（JVM Heap Analysis Tool） 命令来分析内存快照，它的本质实际上内嵌了一个微型的服务器，可以通过浏览器来分析对应的内存快照，比如执行 jhat -port 9810 -J-Xmx4G /data/jvm/dumpfile_jmap.hprof 表示以 9810 端口启动 jhat 内嵌的服务器：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Reading from /Users/dannyhoo/data/jvm/dumpfile_jmap.hprof...</span><br><span class="line">Dump file created Fri Aug 03 15:48:27 CST 2018</span><br><span class="line">Snapshot read, resolving...</span><br><span class="line">Resolving 276472 objects...</span><br><span class="line">Chasing references, expect 55 dots.......................................................</span><br><span class="line">Eliminating duplicate references.......................................................</span><br><span class="line">Snapshot resolved.</span><br><span class="line">Started HTTP server on port 9810</span><br><span class="line">Server is ready.</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在控制台可以看到服务器启动了，访问 <a href="http://127.0.0.1:9810/" target="_blank" rel="noopener">http://127.0.0.1:9810/</a> 可以看到对快照中的每个类进行分析的结果（界面略 low），下图是我随便选择了一个类的信息，有这个类的父类，加载这个类的类加载器和占用的空间大小，下面还有这个类的每个实例（References）及其内存地址和大小，点进去会显示这个实例的一些成员变量等信息：<br> <img src="/2018/06/29/jvm-jvm性能调优/jhat.png" alt="jhat" title="Optional title"></p>
+</li>
+<li><p>jvisualvm 也可以分析内存快照，在 jvisualvm 菜单的 “ 文件 ” - “ 装入 ”，选择堆内存快照，快照中的信息就以图形界面展示出来了，如下，主要可以查看每个类占用的空间、实例的数量和实例的详情等：<br> <img src="/2018/06/29/jvm-jvm性能调优/jvisualvmDump.png" alt="jvisualvmDump" title="Optional title"></p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="JVM-调优经验"><a href="#JVM-调优经验" class="headerlink" title="JVM 调优经验"></a>JVM 调优经验</h2><ul>
+<li><p>JVM 配置方面，一般情况可以先用默认配置（基本的一些初始参数可以保证一般的应用跑的比较稳定了），在测试中根据系统运行状况（会话并发情况、会话时间等），结合 gc 日志、内存监控、使用的垃圾收集器等进行合理的调整，当老年代内存过小时可能引起频繁 Full GC，当内存过大时 Full GC 时间会特别长</p>
+</li>
+<li><p>那么 JVM 的配置比如新生代、老年代应该配置多大最合适呢？答案是不一定，调优就是找答案的过程，物理内存一定的情况下，新生代设置越大，老年代就越小，Full GC 频率就越高，但 Full GC 时间越短；相反新生代设置越小，老年代就越大，Full GC 频率就越低，但每次 Full GC 消耗的时间越大</p>
+</li>
+<li><p>建议如下：</p>
+<ul>
+<li><p>-Xms 和 -Xmx 的值设置成相等，堆大小默认为 -Xms 指定的大小，默认空闲堆内存小于 40% 时，JVM 会扩大堆到 -Xmx 指定的大小；空闲堆内存大于 70% 时，JVM 会减小堆到 -Xms 指定的大小。如果在 Full GC 后满足不了内存需求会动态调整，这个阶段比较耗费资源</p>
+</li>
+<li><p>新生代尽量设置大一些，让对象在新生代多存活一段时间，每次 Minor GC 都要尽可能多的收集垃圾对象，防止或延迟对象进入老年代的机会，以减少应用程序发生 Full GC 的频率。</p>
+</li>
+<li><p>老年代如果使用 CMS 收集器，新生代可以不用太大，因为 CMS 的并行收集速度也很快，收集过程比较耗时的并发标记和并发清除阶段都可以与用户线程并发执行。</p>
+</li>
+<li><p>方法区大小的设置，1.6 之前的需要考虑系统运行时动态增加的常量、静态变量等，1.7 只要差不多能装下启动时和后期动态加载的类信息就行</p>
+</li>
+</ul>
+</li>
+<li><p>代码实现方面，性能出现问题比如程序等待、内存泄漏除了 JVM 配置可能存在问题，代码实现上也有很大关系：</p>
+<ul>
+<li><p>避免创建过大的对象及数组：过大的对象或数组在新生代没有足够空间容纳时会直接进入老年代，如果是短命的大对象，会提前出发 Full GC。</p>
+</li>
+<li><p>避免同时加载大量数据，如一次从数据库中取出大量数据，或者一次从 Excel 中读取大量记录，可以分批读取，用完尽快清空引用。</p>
+</li>
+<li><p>当集合中有对象的引用，这些对象使用完之后要尽快把集合中的引用清空，这些无用对象尽快回收避免进入老年代。</p>
+</li>
+<li><p>可以在合适的场景（如实现缓存）采用软引用、弱引用，比如用软引用来为 ObjectA 分配实例：SoftReference<objecta> objectA=new SoftReference<objecta>(); 在发生内存溢出前，会将 objectA 列入回收范围进行二次回收，如果这次回收还没有足够内存，才会抛出内存溢出的异常</objecta></objecta></p>
+</li>
+</ul>
+</li>
+<li><p>避免产生死循环，产生死循环后，循环体内可能重复产生大量实例，导致内存空间被迅速占满</p>
+<ul>
+<li>尽量避免长时间等待外部资源（数据库、网络、设备资源等）的情况，缩小对象的生命周期，避免进入老年代，如果不能及时返回结果可以适当采用异步处理的方式等</li>
+</ul>
+</li>
+</ul>
+<h2 id="常用JVM参数参考"><a href="#常用JVM参数参考" class="headerlink" title="常用JVM参数参考"></a>常用JVM参数参考</h2>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">参数	                            说明	                                                                                                          实例</span><br><span class="line"></span><br><span class="line">-Xms	                        初始堆大小，默认物理内存的1/64	                                                                                        -Xms512M</span><br><span class="line">-Xmx	                        最大堆大小，默认物理内存的1/4	                                                                                        -Xms2G</span><br><span class="line">-Xmn	                        新生代内存大小，官方推荐为整个堆的3/8	                                                                                        -Xmn512M</span><br><span class="line">-Xss	                        线程堆栈大小，jdk1.5及之后默认1M，之前默认256k	                                                                        -Xss512k</span><br><span class="line">-XX:NewRatio=n	            设置新生代和年老代的比值。如:为3，表示年轻代与年老代比值为1：3，年轻代占整个年轻代年老代和的1/4	                                -XX:NewRatio=3</span><br><span class="line">-XX:SurvivorRatio=n	        年轻代中Eden区与两个Survivor区的比值。注意Survivor区有两个。如:8，表示Eden：Survivor=8:1:1，一个Survivor区占整个年轻代的1/8	      -XX:SurvivorRatio=8</span><br><span class="line">-XX:PermSize=n	            永久代初始值，默认为物理内存的1/64	                                                                                    -XX:PermSize=128M</span><br><span class="line">-XX:MaxPermSize=n	            永久代最大值，默认为物理内存的1/4	                                                                                    -XX:MaxPermSize=256M</span><br><span class="line">-verbose:class	            在控制台打印类加载信息	</span><br><span class="line">-verbose:gc	                在控制台打印垃圾回收日志	</span><br><span class="line">-XX:+PrintGC	                打印GC日志，内容简单	</span><br><span class="line">-XX:+PrintGCDetails	        打印GC日志，内容详细	</span><br><span class="line">-XX:+PrintGCDateStamps	    在GC日志中添加时间戳	</span><br><span class="line">-Xloggc:filename	            指定gc日志路径	                                                                                                    -Xloggc:/data/jvm/gc.log</span><br><span class="line">-XX:+UseSerialGC	            年轻代设置串行收集器Serial	</span><br><span class="line">-XX:+UseParallelGC	        年轻代设置并行收集器Parallel Scavenge	</span><br><span class="line">-XX:ParallelGCThreads=n	    设置Parallel Scavenge收集时使用的CPU数。并行收集线程数。	                                                                -XX:ParallelGCThreads=4</span><br><span class="line">-XX:MaxGCPauseMillis=n	    设置Parallel Scavenge回收的最大时间(毫秒)	                                                                            -XX:MaxGCPauseMillis=100</span><br><span class="line">-XX:GCTimeRatio=n	            设置Parallel Scavenge垃圾回收时间占程序运行时间的百分比。公式为1/(1+n)                                                  	-XX:GCTimeRatio=19</span><br><span class="line">-XX:+UseParallelOldGC	        设置老年代为并行收集器ParallelOld收集器	</span><br><span class="line">-XX:+UseConcMarkSweepGC	    设置老年代并发收集器CMS	</span><br><span class="line">-XX:+CMSIncrementalMode	    设置CMS收集器为增量模式，适用于单CPU情况。</span><br></pre></td></tr></table></figure>
+<h3 id="思维导图"><a href="#思维导图" class="headerlink" title="思维导图"></a>思维导图</h3><p>   <img src="/2018/06/29/jvm-jvm性能调优/jvm.png" alt="性能调优" title="Optional title"></p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/06/27/jvm-jvm垃圾回收分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rick Liu">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar-user.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进步一小点">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2018/06/27/jvm-jvm垃圾回收分析/" class="post-title-link" itemprop="url">jvm垃圾回收分析</a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-06-27 20:50:04" itemprop="dateCreated datePublished" datetime="2018-06-27T20:50:04+08:00">2018-06-27</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-04-20 15:46:20" itemprop="dateModified" datetime="2019-04-20T15:46:20+08:00">2019-04-20</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/jvm/" itemprop="url" rel="index"><span itemprop="name">jvm</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="JVM垃圾回收"><a href="#JVM垃圾回收" class="headerlink" title="JVM垃圾回收"></a>JVM垃圾回收</h2><ul>
+<li>垃圾回收，就是通过垃圾收集器把内存中没用的对象清理掉。垃圾回收涉及到的内容有：<ul>
+<li>判断对象是否已死</li>
+<li>选择垃圾收集算法</li>
+<li>选择垃圾收集时间</li>
+<li>选择适当的垃圾收集器（已死对象）</li>
+</ul>
+</li>
+</ul>
+<h3 id="判断对象是否已死"><a href="#判断对象是否已死" class="headerlink" title="判断对象是否已死"></a>判断对象是否已死</h3><ul>
+<li><p>判断对象是否已死就是找出哪些对象是已经死掉的，以后不会再用到的，就像地上有废纸、饮料瓶和百元大钞，扫地前要先判断出地上废纸和饮料瓶是垃圾，百元大钞不是垃圾。<br>判断对象是否已死有引用计数算法和可达性分析算法</p>
+<ul>
+<li><p>引用计数算法</p>
+<ul>
+<li><p>给每一个对象添加一个引用计数器，每当有一个地方引用它时，计数器值加 1；每当有一个地方不再引用它时，计数器值减 1，这样只要计数器的值不为 0，<br>就说明还有地方引用它，它就不是无用的对象。如下图，对象 2 有 1 个引用，它的引用计数器值为 1，对象 1有两个地方引用，它的引用计数器值为 2<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm1.png" alt="jvm" title="Optional title"></p>
+</li>
+<li><p>这种方法看起来非常简单，但目前许多主流的虚拟机都没有选用这种算法来管理内存，原因就是当某些对象之间互相引用时，无法判断出这些对象是否已死，如下图，<br>对象 1 和对象 2 都没有被堆外的变量引用，而是被对方互相引用，这时他们虽然没有用处了，但是引用计数器的值仍然是 1，无法判断他们是死对象，垃圾回收器也就无法回收<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm2.png" alt="jvm" title="Optional title"></p>
+</li>
+</ul>
+</li>
+<li><p>可达性分析算法</p>
+<ul>
+<li>了解可达性分析算法之前先了解一个概念——GC Roots，垃圾收集的起点，<br>可以作为 GC Roots 的有虚拟机栈中本地变量表中引用的对象、方法区中静态属性引用的对象、方法区中常量引用的对象、本地方法栈中 JNI（Native 方法）引用的对象  </li>
+<li>当一个对象到 GC Roots 没有任何引用链相连（GC Roots 到这个对象不可达）时，就说明此对象是不可用的，是死对象</li>
+<li>如下图：object1、object2、object3、object4 和 GC Roots 之间有可达路径，<br>这些对象不会被回收，但 object5、object6、object7 到 GC Roots 之间没有可达路径，这些对象就被判了死刑<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm3.png" alt="jvm" title="Optional title"></li>
+<li>上面被判了死刑的对象（object5、object6、object7）并不是必死无疑，还有挽救的余地。<br>进行可达性分析后对象和 GC Roots 之间没有引用链相连时，对象将会被进行一次标记，接着会判断如果对象没有覆盖 Object的finalize() 方法或者 finalize() 方法已经被虚拟机调用过<br>那么它们就会被行刑（清除）；如果对象覆盖了 finalize() 方法且还没有被调用，则会执行 finalize() 方法中的内容，所以在 finalize() 方法中如果重新与 GC Roots 引用链上的对象关联就可以拯救自己，<br>但是一般不建议这么做，周志明老师也建议大家完全可以忘掉这个方法</li>
+</ul>
+</li>
+<li><p>方法区回收</p>
+<ul>
+<li><p>上面说的都是对堆内存中对象的判断，方法区中主要回收的是废弃的常量和无用的类。<br>判断常量是否废弃可以判断是否有地方引用这个常量，如果没有引用则为废弃的常量。</p>
+</li>
+<li><p>判断类是否废弃需要同时满足如下条件：</p>
+<ul>
+<li><p>该类所有的实例已经被回收（堆中不存在任何该类的实例）。</p>
+</li>
+<li><p>加载该类的 ClassLoader 已经被回收。</p>
+</li>
+<li><p>该类对应的 java.lang.Class 对象在任何地方没有被引用（无法通过反射访问该类的方法）。</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>总结思维导图<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm003.png" alt="jvm" title="Optional title"></p>
+</li>
+</ul>
+<h3 id="常用垃圾回收算法"><a href="#常用垃圾回收算法" class="headerlink" title="常用垃圾回收算法"></a>常用垃圾回收算法</h3><ul>
+<li><p>常用的垃圾回收算法有三种：标记-清除算法、复制算法、标记-整理算法</p>
+<ul>
+<li>标记-清除算法：分为标记和清除两个阶段，首先标记出所有需要回收的对象，标记完成后统一回收所有被标记的对象，如下图</li>
+<li><p>缺点：标记和清除两个过程效率都不高；标记清除之后会产生大量不连续的内存碎片<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm4.png" alt="jvm" title="Optional title"></p>
+</li>
+<li><p>复制算法：把内存分为大小相等的两块，每次存储只用其中一块，当这一块用完了，就把存活的对象全部复制到另一块上，同时把使用过的这块内存空间全部清理掉，往复循环，如下图</p>
+</li>
+<li><p>缺点：实际可使用的内存空间缩小为原来的一半，比较适合<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm5.png" alt="jvm" title="Optional title"></p>
+</li>
+<li><p>标记-整理算法：先对可用的对象进行标记，然后所有被标记的对象向一段移动，最后清除可用对象边界以外的内存，如下图<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm6.png" alt="jvm" title="Optional title"></p>
+</li>
+<li><p>分代收集算法：把堆内存分为新生代和老年代，新生代又分为 Eden 区、From Survivor 和 To Survivor。一般新生代中的对象基本上都是朝生夕灭的，每次只有少量对象存活，因此采用复制算法，只需要复制那些少量存活的对象就可以完成垃圾收集；老年代中的对象存活率较高，就采用标记-清除和标记-整理算法来进行回收<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm7.png" alt="jvm" title="Optional title"></p>
+</li>
+<li><p>在这些区域的垃圾回收大概有如下几种情况:</p>
+<ul>
+<li>大多数情况下，新的对象都分配在Eden区，当 Eden 区没有空间进行分配时，将进行一次 Minor GC，清理 Eden 区中的无用对象。清理后，Eden 和 From Survivor 中的存活对象如果小于To Survivor 的可用空间则进入To Survivor，否则直接进入老年代）；Eden 和 From Survivor 中还存活且能够进入 To Survivor 的对象年龄增加 1 岁（虚拟机为每个对象定义了一个年龄计数器，每执行一次 Minor GC 年龄加 1），当存活对象的年龄到达一定程度（默认 15 岁）后进入老年代，可以通过 -XX:MaxTenuringThreshold 来设置年龄的值</li>
+<li>当进行了 Minor GC 后，Eden 还不足以为新对象分配空间（那这个新对象肯定很大），新对象直接进入老年代</li>
+<li>占 To Survivor 空间一半以上且年龄相等的对象，大于等于该年龄的对象直接进入老年代，比如 Survivor 空间是 10M，有几个年龄为 4 的对象占用总空间已经超过 5M，则年龄大于等于 4 的对象都直接进入老年代，不需要等到 MaxTenuringThreshold 指定的岁数</li>
+<li>在进行 Minor GC 之前，会判断老年代最大连续可用空间是否大于新生代所有对象总空间，如果大于，说明 Minor GC 是安全的，否则会判断是否允许担保失败，如果允许，判断老年代最大连续可用空间是否大于历次晋升到老年代的对象的平均大小，如果大于，则执行 Minor GC，否则执行 Full GC</li>
+<li>当在 java 代码里直接调用 System.gc() 时，会建议 JVM 进行 Full GC，但一般情况下都会触发 Full GC，一般不建议使用，尽量让虚拟机自己管理 GC 的策略</li>
+<li>永久代（方法区）中用于存放类信息，jdk1.6 及之前的版本永久代中还存储常量、静态变量等，当永久代的空间不足时，也会触发 Full GC，如果经过 Full GC 还无法满足永久代存放新数据的需求，就会抛出永久代的内存溢出异常</li>
+<li>大对象（需要大量连续内存的对象）例如很长的数组，会直接进入老年代，如果老年代没有足够的连续大空间来存放，则会进行 Full GC</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>总结思维导图<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm002.png" alt="jvm" title="Optional title"></p>
+</li>
+</ul>
+<h3 id="选择垃圾收集的时间"><a href="#选择垃圾收集的时间" class="headerlink" title="选择垃圾收集的时间"></a>选择垃圾收集的时间</h3><ul>
+<li><p>当程序运行时，各种数据、对象、线程、内存等都时刻在发生变化，当下达垃圾收集命令后就立刻进行收集吗？肯定不是。这里来了解两个概念：安全点（safepoint）和安全区（safe region）</p>
+<ul>
+<li><p>安全点</p>
+<ul>
+<li>从线程角度看，安全点可以理解为是在代码执行过程中的一些特殊位置，当线程执行到安全点的时候，说明虚拟机当前的状态是安全的，如果有需要，可以在这里暂停用户线程。当垃圾收集时，如果需要暂停当前的用户线程，但用户线程当时没在安全点上，则应该等待这些线程执行到安全点再暂停</li>
+<li>举个例子，妈妈在扫地，儿子在吃西瓜（瓜皮会扔到地上），妈妈扫到儿子跟前时，儿子说：“妈妈等一下，让我吃完这块再扫。”儿子吃完这块西瓜把瓜皮扔到地上后就是一个安全点，妈妈可以继续扫地（垃圾收集器可以继续收集垃圾）。理论上，解释器的每条字节码的边界上都可以放一个安全点，实际上，安全点基本上以“是否具有让程序长时间执行的特征”为标准进行选定</li>
+</ul>
+</li>
+<li><p>安全区</p>
+<ul>
+<li>安全点是相对于运行中的线程来说的，对于如sleep或blocked等状态的线程，收集器不会等待这些线程被分配CPU时间，这时候只要线程处于安全区中，就可以算是安全的。安全区就是在一段代码片段中，引用关系不会发生变化，可以看作是被扩展、拉长了的安全点</li>
+<li>还以上面的例子说明，妈妈在扫地，儿子在吃西瓜（瓜皮会扔到地上），妈妈扫到儿子跟前时，儿子说：“妈妈你继续扫地吧，我还得吃10分钟呢！”儿子吃瓜的这段时间就是安全区，妈妈可以继续扫地（垃圾收集器可以继续收集垃圾）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>垃圾回收过程<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm004.png" alt="jvm" title="Optional title"></p>
+</li>
+</ul>
+<h3 id="常见垃圾收集器"><a href="#常见垃圾收集器" class="headerlink" title="常见垃圾收集器"></a>常见垃圾收集器</h3><ul>
+<li>常见的垃圾收集器有如下几种：<ul>
+<li>新生代收集器：Serial、ParNew、Parallel Scavenge。</li>
+<li>老年代收集器：Serial Old、CMS、Parallel Old</li>
+<li>堆内存垃圾收集器：G1</li>
+</ul>
+</li>
+<li><p>每种垃圾收集器之间有连线，表示他们可以搭配使用<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm8.png" alt="jvm" title="Optional title"></p>
+<ul>
+<li><p>Serial 收集器</p>
+<ul>
+<li>Serial 是一款用于新生代的单线程收集器，采用复制算法进行垃圾收集。Serial 进行垃圾收集时，不仅只用一条线程执行垃圾收集工作，它在收集的同时，所有的用户线程必须暂停（Stop The World）</li>
+<li>就比如妈妈在家打扫卫生的时候，肯定不会边打扫边让儿子往地上乱扔纸屑，否则一边制造垃圾，一遍清理垃圾，这活啥时候也干不完</li>
+<li>如下是 Serial 收集器和 Serial Old 收集器结合进行垃圾收集的示意图，当用户线程都执行到安全点时，所有线程暂停执行，Serial 收集器以单线程，采用复制算法进行垃圾收集工作，收集完之后，用户线程继续开始执行<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm9.png" alt="jvm" title="Optional title"></li>
+<li>适用场景：Client 模式（桌面应用）；单核服务器;可以用 -XX:+UserSerialGC 来选择 Serial 作为新生代收集器</li>
+</ul>
+</li>
+<li><p>ParNew 收集器</p>
+<ul>
+<li>ParNew 就是一个 Serial 的多线程版本，其它与Serial并无区别。ParNew 在单核 CPU 环境并不会比 Serial 收集器达到更好的效果，它默认开启的收集线程数和 CPU 数量一致，可以通过 -XX:ParallelGCThreads 来设置垃圾收集的线程数</li>
+<li>如下是 ParNew 收集器和 Serial Old 收集器结合进行垃圾收集的示意图，当用户线程都执行到安全点时，所有线程暂停执行，ParNew 收集器以多线程，采用复制算法进行垃圾收集工作，收集完之后，用户线程继续开始执行<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm10.png" alt="jvm" title="Optional title"></li>
+<li>适用场景：多核服务器；与 CMS 收集器搭配使用。当使用 -XX:+UserConcMarkSweepGC 来选择 CMS 作为老年代收集器时，新生代收集器默认就是 ParNew，也可以用 -XX:+UseParNewGC 来指定使用 ParNew 作为新生代收集器</li>
+</ul>
+</li>
+<li><p>Parallel Scavenge 收集器</p>
+<ul>
+<li>Parallel Scavenge 也是一款用于新生代的多线程收集器，与 ParNew 的不同之处是，ParNew 的目标是尽可能缩短垃圾收集时用户线程的停顿时间，Parallel Scavenge 的目标是达到一个可控制的吞吐量</li>
+<li><p>吞吐量就是 CPU 执行用户线程的的时间与 CPU 执行总时间的比值【吞吐量 = 运行用户代代码时间/（运行用户代码时间+垃圾收集时间）】，比如虚拟机一共运行了 100 分钟，其中垃圾收集花费了 1 分钟，那吞吐量就是 99% 。比如下面两个场景，垃圾收集器每 100 秒收集一次，每次停顿 10 秒，和垃圾收集器每 50 秒收集一次，每次停顿时间 7 秒，虽然后者每次停顿时间变短了，但是总体吞吐量变低了，CPU 总体利用率变低了</p>
+<pre><code>收集频率                 每次停堆时间           吞吐量
+每100秒收集一次              10秒               91%
+每50秒收集一次                7秒               88%
+</code></pre></li>
+<li>可以通过 -XX:MaxGCPauseMillis 来设置收集器尽可能在多长时间内完成内存回收，可以通过 -XX:GCTimeRatio 来精确控制吞吐量 </li>
+<li>如下是 Parallel 收集器和 Parallel Old 收集器结合进行垃圾收集的示意图，在新生代，当用户线程都执行到安全点时，所有线程暂停执行，ParNew 收集器以多线程，采用复制算法进行垃圾收集工作，收集完之后，用户线程继续开始执行；在老年代，当用户线程都执行到安全点时，所有线程暂停执行，Parallel Old 收集器以多线程，采用标记整理算法进行垃圾收集工作<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm11.png" alt="jvm" title="Optional title"></li>
+<li>适用场景：注重吞吐量，高效利用 CPU，需要高效运算且不需要太多交互。<br>可以使用 -XX:+UseParallelGC 来选择 Parallel Scavenge 作为新生代收集器，jdk7、jdk8 默认使用 Parallel Scavenge 作为新生代收集器</li>
+</ul>
+</li>
+<li><p>Serial Old 收集器</p>
+<ul>
+<li>Serial Old 收集器是 Serial 的老年代版本，同样是一个单线程收集器，采用标记-整理算法</li>
+<li>如下图是 Serial 收集器和 Serial Old 收集器结合进行垃圾收集的示意图：<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm12.png" alt="jvm" title="Optional title"></li>
+<li>适用场景：Client 模式（桌面应用）；单核服务器；与 Parallel Scavenge 收集器搭配；作为 CMS 收集器的后备预案</li>
+</ul>
+</li>
+<li><p>CMS(Concurrent Mark Sweep) 收集器</p>
+<ul>
+<li><p>CMS 收集器是一种以最短回收停顿时间为目标的收集器，以 “ 最短用户线程停顿时间 ” 著称。整个垃圾收集过程分为 4 个步骤：</p>
+<ul>
+<li>初始标记：标记一下 GC Roots 能直接关联到的对象，速度较快</li>
+<li>并发标记：进行 GC Roots Tracing，标记出全部的垃圾对象，耗时较长</li>
+<li>重新标记：修正并发标记阶段引用户程序继续运行而导致变化的对象的标记记录，耗时较短</li>
+<li>并发清除：用标记-清除算法清除垃圾对象，耗时较长</li>
+</ul>
+</li>
+<li><p>整个过程耗时最长的并发标记和并发清除都是和用户线程一起工作，所以从总体上来说，CMS 收集器垃圾收集可以看做是和用户线程并发执行的<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm13.png" alt="jvm" title="Optional title"></p>
+</li>
+<li>CMS 收集器也存在一些缺点：<ul>
+<li>对 CPU 资源敏感：默认分配的垃圾收集线程数为（CPU 数+3）/4，随着 CPU 数量下降，占用 CPU 资源越多，吞吐量越小</li>
+<li>无法处理浮动垃圾：在并发清理阶段，由于用户线程还在运行，还会不断产生新的垃圾，CMS 收集器无法在当次收集中清除这部分垃圾。同时由于在垃圾收集阶段用户线程也在并发执行，CMS 收集器不能像其他收集器那样等老年代被填满时再进行收集，需要预留一部分空间提供用户线程运行使用。当 CMS 运行时，预留的内存空间无法满足用户线程的需要，就会出现 “ Concurrent Mode Failure ” 的错误，这时将会启动后备预案，临时用 Serial Old 来重新进行老年代的垃圾收集</li>
+<li>因为 CMS 是基于标记-清除算法，所以垃圾回收后会产生空间碎片，可以通过 -XX:UserCMSCompactAtFullCollection 开启碎片整理（默认开启），在 CMS 进行 Full GC 之前，会进行内存碎片的整理。还可以用 -XX:CMSFullGCsBeforeCompaction 设置执行多少次不压缩（不进行碎片整理）的 Full GC 之后，跟着来一次带压缩（碎片整理）的 Full GC</li>
+</ul>
+</li>
+<li>适用场景：重视服务器响应速度，要求系统停顿时间最短。可以使用 -XX:+UserConMarkSweepGC 来选择 CMS 作为老年代收集器</li>
+</ul>
+</li>
+<li><p>Parallel Old 收集器</p>
+<ul>
+<li>Parallel Old 收集器是 Parallel Scavenge 的老年代版本，是一个多线程收集器，采用标记-整理算法。可以与 Parallel Scavenge 收集器搭配，可以充分利用多核 CPU 的计算能力<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm14.png" alt="jvm" title="Optional title"></li>
+<li>适用场景：与Parallel Scavenge 收集器搭配使用；注重吞吐量。jdk7、jdk8 默认使用该收集器作为老年代收集器，使用 -XX:+UseParallelOldGC 来指定使用 Paralle Old 收集器</li>
+</ul>
+</li>
+<li><p>G1 收集器</p>
+<ul>
+<li>G1 收集器是 jdk1.7 才正式引用的商用收集器，现在已经成为 jdk9 默认的收集器。前面几款收集器收集的范围都是新生代或者老年代，G1 进行垃圾收集的范围是整个堆内存，它采用 “ 化整为零 ” 的思路，把整个堆内存划分为多个大小相等的独立区域（Region），在 G1 收集器中还保留着新生代和老年代的概念，它们分别都是一部分 Region，如下图：<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm15.png" alt="jvm" title="Optional title"></li>
+<li>每一个方块就是一个区域，每个区域可能是 Eden、Survivor、老年代，每种区域的数量也不一定。JVM 启动时会自动设置每个区域的大小（1M ~ 32M，必须是 2 的次幂），最多可以设置 2048 个区域（即支持的最大堆内存为 32M*2048 = 64G），假如设置 -Xmx8g -Xms8g，则每个区域大小为 8g/2048=4M</li>
+<li>为了在 GC Roots Tracing 的时候避免扫描全堆，在每个 Region 中，都有一个 Remembered Set 来实时记录该区域内的引用类型数据与其他区域数据的引用关系（在前面的几款分代收集中，新生代、老年代中也有一个 Remembered Set 来实时记录与其他区域的引用关系），在标记时直接参考这些引用关系就可以知道这些对象是否应该被清除，而不用扫描全堆的数据</li>
+<li>G1 收集器可以 “ 建立可预测的停顿时间模型 ”，它维护了一个列表用于记录每个 Region 回收的价值大小（回收后获得的空间大小以及回收所需时间的经验值），这样可以保证 G1 收集器在有限的时间内可以获得最大的回收效率</li>
+<li>如下图所示，G1 收集器收集器收集过程有初始标记、并发标记、最终标记、筛选回收，和 CMS 收集器前几步的收集过程很相似：<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm16.png" alt="jvm" title="Optional title"><br> 初始标记：标记出 GC Roots 直接关联的对象，这个阶段速度较快，需要停止用户线程，单线程执行<ul>
+<li>并发标记：从 GC Root 开始对堆中的对象进行可达新分析，找出存活对象，这个阶段耗时较长，但可以和用户线程并发执行</li>
+<li>并发标记：从 GC Root 开始对堆中的对象进行可达新分析，找出存活对象，这个阶段耗时较长，但可以和用户线程并发执行</li>
+<li>筛选回收：筛选回收阶段会对各个 Region 的回收价值和成本进行排序，根据用户所期望的 GC 停顿时间来指定回收计划（用最少的时间来回收包含垃圾最多的区域，这就是 Garbage First 的由来——第一时间清理垃圾最多的区块），这里为了提高回收效率，并没有采用和用户线程并发执行的方式，而是停顿用户线程</li>
+</ul>
+</li>
+<li>适用场景：要求尽可能可控 GC 停顿时间；内存占用较大的应用。可以用 -XX:+UseG1GC 使用 G1 收集器，jdk9 默认使用 G1 收集器 </li>
+</ul>
+</li>
+<li><p>总结思维导图<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm001.png" alt="jvm" title="Optional title"></p>
+</li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/06/23/jvm-jvm内存溢出分析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -570,7 +1473,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2019-04-20 14:10:14" itemprop="dateModified" datetime="2019-04-20T14:10:14+08:00">2019-04-20</time>
+                <time title="修改时间：2019-04-20 14:24:45" itemprop="dateModified" datetime="2019-04-20T14:24:45+08:00">2019-04-20</time>
               
             
           </span>
@@ -669,8 +1572,15 @@
 </li>
 </ul>
 <h2 id="本机直接内存溢出"><a href="#本机直接内存溢出" class="headerlink" title="本机直接内存溢出"></a>本机直接内存溢出</h2><ul>
-<li>本机直接内存（DirectMemory）并不是虚拟机运行时数据区的一部分，也不是 Java 虚拟机规范中定义的内存区域，但 Java 中用到 NIO 相关操作时（比如 ByteBuffer 的 allocteDirect 方法申请的是本机直接内存），也可能会出现内存溢出的异常<br><img src="/2018/06/23/jvm-jvm内存溢出分析/jvmStackTop.png" alt="jvmStackTop" title="Optional title"></li>
+<li><p>本机直接内存（DirectMemory）并不是虚拟机运行时数据区的一部分，也不是 Java 虚拟机规范中定义的内存区域，但 Java 中用到 NIO 相关操作时（比如 ByteBuffer 的 allocteDirect 方法申请的是本机直接内存），也可能会出现内存溢出的异常</p>
+</li>
+<li><p>DirectMemory容量可通过-XX:MaxDirectMemorySize指定，如果不指定，默认与java堆的最大值Xmx一样。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * VM Args: -xmx20M -XX:MaxDirectMemorySize=10M</span><br><span class="line"> */</span><br><span class="line">public class DirectMemoryOOM&#123;</span><br><span class="line"></span><br><span class="line">   private static final int _1MB = 1024 * 1024 ;</span><br><span class="line">   </span><br><span class="line">   public static void main(String [] args)throws Exception&#123;</span><br><span class="line">   </span><br><span class="line">      Field unsafeFild = Unsafe.class.getDeclaredFields()[0];</span><br><span class="line">      unsafeField.setAccessible(true);</span><br><span class="line">      Unsafe unsafe = (Unsafe) unsafeFileld.get(null);</span><br><span class="line">      while(true)&#123;</span><br><span class="line">         unsafe.allocateMemory(_1MB);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>上述代码运行后会报 java.lang.OutOfMemoryError的异常，说明是在直接内存出现了内存溢出的错误</p>
+</li>
 </ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>  <img src="/2018/06/23/jvm-jvm内存溢出分析/jvmStackTop.png" alt="jvmStackTop" title="Optional title"></p>
 
           
         
@@ -1797,610 +2707,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/05/22/spring-boot-BeanPostProcessor使用及源码分析/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Rick Liu">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar-user.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="每天进步一小点">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2018/05/22/spring-boot-BeanPostProcessor使用及源码分析/" class="post-title-link" itemprop="url">BeanPostProcessor使用及源码分析</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2018-05-22 22:12:04" itemprop="dateCreated datePublished" datetime="2018-05-22T22:12:04+08:00">2018-05-22</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2019-04-19 14:44:32" itemprop="dateModified" datetime="2019-04-19T14:44:32+08:00">2019-04-19</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/spring-boot/" itemprop="url" rel="index"><span itemprop="name">spring boot</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <ul>
-<li><p>在 Spring 环境中，如果需要在 Bean 自动装配（属性都注入 ok）完成后进行自定义操作，通常只需要实现接口 InitializingBean，在 afterPropertiesSet 方法中执行操作即可。<br>在这个接口回调时，Bean 中所有的属性已经注入完成了。比如在 Bean 初始化完成后添加一段 log：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">public class MyBean implements InitializingBean &#123;</span><br><span class="line">    private Logger log = LoggerFactory.getLogger(MyBean.class);</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void afterPropertiesSet() throws Exception &#123;</span><br><span class="line">        log.info(&quot;=======&gt;afterPropertiesSet&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">项目启动后可以看到 log 输出：</span><br><span class="line">INFO  com.cml.chat.lesson.lesson2.MyBean - =======&gt;afterPropertiesSet</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>这样的实现方式适合单独的 Bean，如果有多个 Bean 都具有一样的业务逻辑，那么抽象出一个共同类出来即可。<br>所有的类都继承这个抽象类，但是这样的方式代码入侵大，不太适合用于框架类的项目和共通业务逻辑处理。<br>那么如何更优雅的在 Bean 初始化前后自定义进行处理呢？这时候 BeanPostProcessor 就派上用场了</p>
-</li>
-</ul>
-<h2 id="BeanPostProcessor"><a href="#BeanPostProcessor" class="headerlink" title="BeanPostProcessor"></a>BeanPostProcessor</h2><ul>
-<li><p>BeanPostProcessor 接口提供了以下方法：</p>
-<ul>
-<li>postProcessBeforeInitialization：在 Bean 初始化回调前调用</li>
-<li>postProcessAfterInitialization：在 Bean 初始化回调完成后进行调用，而且会在 afterPropertiesSet 方法回调之后</li>
-</ul>
-</li>
-<li><p>两个方法可以在 Bean 初始化回调前后进行处理，而且使用也非常简单，只需要实现 BeanPostProcessor 接口就可以在 Bean 初始化回调前后进行处理其他业务逻辑。这里做个简单的使用示例</p>
-</li>
-</ul>
-<h2 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h2><ul>
-<li><p>先定义好 IMyBean 接口，提供 setCustomValue、getCustomValue 两个方法，当所有 IMyBean 对象 getCustomValue 获取数据为空时，自动设置 customValue 为默认值 “defaultValue”：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">public interface IMyBean &#123;</span><br><span class="line">    void setCustomValue(String v);</span><br><span class="line">    String getCustomValue();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">定义好 MyBean 实现 IMyBean 接口：</span><br><span class="line"></span><br><span class="line">@Component</span><br><span class="line">public class MyBean implements IMyBean &#123;</span><br><span class="line">private String customValue;</span><br><span class="line"></span><br><span class="line">    public String getCustomValue() &#123;</span><br><span class="line">        return customValue;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setCustomValue(String customValue) &#123;</span><br><span class="line">        this.customValue = customValue;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>实现BeanPostProcessor接口</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">public class MyBeanPostProcessor implements BeanPostProcessor &#123;</span><br><span class="line"></span><br><span class="line">private Logger log = LoggerFactory.getLogger(MyBeanPostProcessor.class);</span><br><span class="line"></span><br><span class="line">@Override</span><br><span class="line">public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException &#123;</span><br><span class="line">    return bean;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@Override</span><br><span class="line">public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException &#123;</span><br><span class="line">    if (bean instanceof IMyBean) &#123;</span><br><span class="line">        log.info(&quot;=======&gt;postProcessAfterInitialization&quot;);</span><br><span class="line">        IMyBean mybean = (IMyBean) bean;</span><br><span class="line">        if (mybean.getCustomValue() == null) &#123;</span><br><span class="line">            mybean.setCustomValue(&quot;defaultValue&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return bean;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>运行</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">@SpringBootApplication()</span><br><span class="line">public class Application &#123;</span><br><span class="line">private static Logger log=LoggerFactory.getLogger(Application.class);</span><br><span class="line"></span><br><span class="line">public static void main(String[] args) throws Exception &#123;</span><br><span class="line">    SpringApplication springApplication = new SpringApplication(Application.class);</span><br><span class="line">    // 非web环境</span><br><span class="line">    springApplication.setWebEnvironment(false);</span><br><span class="line">    ConfigurableApplicationContext application = springApplication.run(args);</span><br><span class="line">    MyBean mybean = application.getBean(MyBean.class);</span><br><span class="line">    log.info(&quot;getCustomValue:&quot;+mybean.getCustomValue());</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">log：</span><br><span class="line">   com.cml.chat.lesson.lesson2.Application - getCustomValue:defaultValue</span><br><span class="line"></span><br><span class="line">输出：com.cml.chat.lesson.lesson2.Application - getCustomValue:myCustomValue</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>这样简单的 BeanPostProcessor 就实现了，那么为什么只要实现 BeanPostProcessor 接口就可以了？<br>Spring 是如何识别 BeanPostProcessor 的呢？那么这时候该来剖析下 BeanPostProcessor 实现原理了</p>
-</li>
-</ul>
-<h2 id="BeanPostProcessor-原理解析"><a href="#BeanPostProcessor-原理解析" class="headerlink" title="BeanPostProcessor 原理解析"></a>BeanPostProcessor 原理解析</h2><ul>
-<li><p>在 Spring 中，所有的 Bean 都是通过 BeanFactory 进行管理的，Spring Boot 中使用的是 DefaultListableBeanFactory。<br>可以从以下代码获取 Spring Boot 使用的 BeanFactory</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">@SpringBootApplication()</span><br><span class="line">public class Application &#123;</span><br><span class="line">private static Logger log = LoggerFactory.getLogger(Application.class);</span><br><span class="line"></span><br><span class="line">public static void main(String[] args) throws Exception &#123;</span><br><span class="line">    SpringApplication springApplication = new SpringApplication(Application.class);</span><br><span class="line">    // 非web环境</span><br><span class="line">    springApplication.setWebEnvironment(false);</span><br><span class="line">    ConfigurableApplicationContext application = springApplication.run(args);</span><br><span class="line">    log.info(&quot;beanFactory===&gt;&quot; + application.getBeanFactory().getClass());</span><br><span class="line"></span><br><span class="line">    application.close();</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">输出log:</span><br><span class="line">       com.cml.chat.lesson.lesson2.Application - beanFactory===&gt;class org.springframework.beans.factory.support.DefaultListableBeanFactory</span><br><span class="line">       </span><br><span class="line">说明：可以看出BeanFactory默认实现类是：DefaultListableBeanFactory</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>当获取 Bean 时，都是通过调用 BeanFactory.getBean 方法获得的。在 SpingBoot 中 BeanFactory 默认使用的是 DefaultListableBeanFactory。<br>知道了 BeanFactory 就相当于找到了所有 bean 相关的入口。那么剩下的就该来剖析下 BeanPostProcessor 实现原理了</p>
-</li>
-<li><p>说下一个万能的原理查看方法，只要在对应的调用地方添加断点，当断点进入后就可以看到整个方法调用链，这样就可以知道整个流程是如何运作了。<br>就从上面的例子来说在 MyBeanPostProcessor.postProcessBeforeInitialization 方法中添加断点，Debug 运行后可得到如下</p>
-<p> <img src="/2018/05/22/spring-boot-BeanPostProcessor使用及源码分析/beanPostProcessor.png" alt="BeanPostProcessor" title="Optional title"></p>
-</li>
-</ul>
-<ul>
-<li>是不是非常直观，从 Application 调用入口，到断点 MyBeanPostProcessor.postProcessBeforeInitialization 中间的所有调用过程都展示出来了，<br>那么源码阅读的话就可以按照这个流程逆向进行分析就可以了<ul>
-<li>根据调用链可以进入 AbstractAutowireCapableBeanFactory.initializeBean 方法中：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line">protected Object initializeBean(final String beanName, final Object bean, RootBeanDefinition mbd) &#123;</span><br><span class="line">    //略...</span><br><span class="line"></span><br><span class="line">    Object wrappedBean = bean;</span><br><span class="line">    if (mbd == null || !mbd.isSynthetic()) &#123;</span><br><span class="line">    //这里调用了postProcessBeforeInitialization</span><br><span class="line">        wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    try &#123;</span><br><span class="line">        invokeInitMethods(beanName, wrappedBean, mbd);</span><br><span class="line">    &#125;</span><br><span class="line">    catch (Throwable ex) &#123;</span><br><span class="line">        throw new BeanCreationException(</span><br><span class="line">                (mbd != null ? mbd.getResourceDescription() : null),</span><br><span class="line">                beanName, &quot;Invocation of init method failed&quot;, ex);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (mbd == null || !mbd.isSynthetic()) &#123;</span><br><span class="line">    //这里调用了postProcessAfterInitialization</span><br><span class="line">        wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);</span><br><span class="line">    &#125;</span><br><span class="line">    return wrappedBean;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">applyBeanPostProcessorsBeforeInitialization 方法：</span><br><span class="line">获取系统中所有的 BeanPostProcessor 对象，并调用其 postProcessBeforeInitialization 方法：</span><br><span class="line"></span><br><span class="line">    public Object applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)</span><br><span class="line">        throws BeansException &#123;</span><br><span class="line"></span><br><span class="line">    Object result = existingBean;</span><br><span class="line">    for (BeanPostProcessor beanProcessor : getBeanPostProcessors()) &#123;</span><br><span class="line">        result = beanProcessor.postProcessBeforeInitialization(result, beanName);</span><br><span class="line">        if (result == null) &#123;</span><br><span class="line">            return result;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">applyBeanPostProcessorsAfterInitialization</span><br><span class="line">获取系统中所有的 BeanPostProcessor 对象，并调用其 postProcessAfterInitialization 方法：</span><br><span class="line"></span><br><span class="line">public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName)</span><br><span class="line">        throws BeansException &#123;</span><br><span class="line"></span><br><span class="line">    Object result = existingBean;</span><br><span class="line">    for (BeanPostProcessor beanProcessor : getBeanPostProcessors()) &#123;</span><br><span class="line">        result = beanProcessor.postProcessAfterInitialization(result, beanName);</span><br><span class="line">        if (result == null) &#123;</span><br><span class="line">            return result;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return result;</span><br><span class="line">&#125;</span><br><span class="line">     </span><br><span class="line"></span><br><span class="line">getBeanPostProcessors()，这里就更简单了，直接获取到 BeanPostProcessor 对象集合。</span><br><span class="line"></span><br><span class="line">public List&lt;BeanPostProcessor&gt; getBeanPostProcessors() &#123;</span><br><span class="line">    return this.beanPostProcessors;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li><p>那么，在什么时候将 BeanPostProcessor 对象都添加到集合中去的呢？<br>在 Spring 初始化完成后会回调 ApplicationContext 中的 refresh 方法，<br>在 AbstractApplicationContext 中完成了共通的实现。在 refresh 方法中：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void refresh() throws BeansException, IllegalStateException &#123;</span><br><span class="line">    synchronized (this.startupShutdownMonitor) &#123;</span><br><span class="line">        //略。。。</span><br><span class="line"></span><br><span class="line">            //从这里注册BeanPostProcessors</span><br><span class="line">            registerBeanPostProcessors(beanFactory);</span><br><span class="line"></span><br><span class="line">        //略。。。</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">registerBeanPostProcessors 这里非常简单的调用了 PostProcessorRegistrationDelegate，将 BeanFactory 作为参数传入，那么这里是不是就是可以猜想出是如何获取 BeanPostProcessor 的吧！</span><br><span class="line"></span><br><span class="line">protected void registerBeanPostProcessors(ConfigurableListableBeanFactory beanFactory) &#123;</span><br><span class="line">    PostProcessorRegistrationDelegate.registerBeanPostProcessors(beanFactory, this);</span><br><span class="line">&#125;</span><br><span class="line">继续跟入到 registerBeanPostProcessors，这里的第一句代码就很清楚的说明了获取的方式，从 Bean 工厂中获取到所有 BeanPostProcessor 实现类。</span><br><span class="line"></span><br><span class="line">    public static void registerBeanPostProcessors(</span><br><span class="line">        ConfigurableListableBeanFactory beanFactory, AbstractApplicationContext applicationContext) &#123;</span><br><span class="line"></span><br><span class="line">    String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanPostProcessor.class, true, false);&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>获取完所有实现类后，根据实现类上的顺序进行排序，然后将排序好的集合对象调用 BeanFactory.addBeanPostProcessor 注册到 BeanFactory 中。这样在 AbstractAutowireCapableBeanFactory 中就可以从它的父类 AbstractBeanFactory 中直接获取到 BeanPostProcessor 集合对象了，<br>也就是上面调用的 getBeanPostProcessors() 方法。registerBeanPostProcessors 方法实现的代码没有什么难度，这里就不多贴代码了。</p>
-<p>以上代码从 getBean 入口到实际调用 BeanPostProcessor 接口的核心流程分析完毕了。知道了 BeanPostProcessor 执行过程，那么 InitializingBean 的是何时回调的呢？</p>
-<p>AbstractAutowireCapableBeanFactory.initializeBean 方法中调用 applyBeanPostProcessorsBeforeInitialization 方法后，调用了 invokeInitMethods 方法。<br>从方法的实现代码可以看出，如果 Bean 实现了 InitializingBean 接口，就回调 afterPropertiesSet 方法</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">protected void invokeInitMethods(String beanName, final Object bean, RootBeanDefinition mbd)</span><br><span class="line">        throws Throwable &#123;</span><br><span class="line"></span><br><span class="line">    boolean isInitializingBean = (bean instanceof InitializingBean);</span><br><span class="line">    if (isInitializingBean &amp;&amp; (mbd == null || !mbd.isExternallyManagedInitMethod(&quot;afterPropertiesSet&quot;))) &#123;</span><br><span class="line">        if (logger.isDebugEnabled()) &#123;</span><br><span class="line">            logger.debug(&quot;Invoking afterPropertiesSet() on bean with name &apos;&quot; + beanName + &quot;&apos;&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        if (System.getSecurityManager() != null) &#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                AccessController.doPrivileged(new PrivilegedExceptionAction&lt;Object&gt;() &#123;</span><br><span class="line">                    public Object run() throws Exception &#123;</span><br><span class="line">                        ((InitializingBean) bean).afterPropertiesSet();</span><br><span class="line">                        return null;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;, getAccessControlContext());</span><br><span class="line">            &#125;</span><br><span class="line">            catch (PrivilegedActionException pae) &#123;</span><br><span class="line">                throw pae.getException();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        else &#123;</span><br><span class="line">            ((InitializingBean) bean).afterPropertiesSet();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (mbd != null) &#123;</span><br><span class="line">        String initMethodName = mbd.getInitMethodName();</span><br><span class="line">        if (initMethodName != null &amp;&amp; !(isInitializingBean &amp;&amp; &quot;afterPropertiesSet&quot;.equals(initMethodName)) &amp;&amp;</span><br><span class="line">                !mbd.isExternallyManagedInitMethod(initMethodName)) &#123;</span><br><span class="line">            invokeCustomInitMethod(beanName, bean, mbd);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>这样 BeanPostProcessor 和 InitializingBean 的执行关系如下：postProcessBeforeInitialization→afterPropertiesSet→postProcessAfterInitialization<br>在 Bean 加载完成后回调中，还可以使用 @PostConstruct 实现。能够实现和 InitializingBean 一样的效果，测试同上面一样<br>需要在postConstruct对应方法加入断点，可查看方法调用链</p>
-</li>
-<li><p>笔者这里主要阐述下@PostConstruct的原理和代码分析：</p>
-<ul>
-<li><p>@PostConstruct 是通过反射进行调用的。在 InitDestroyAnnotationBeanPostProcessor.postProcessBeforeInitialization 通过反射调用方法。源码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException &#123;</span><br><span class="line">    LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());</span><br><span class="line">    try &#123;</span><br><span class="line">        metadata.invokeInitMethods(bean, beanName);</span><br><span class="line">    &#125;</span><br><span class="line">    catch (InvocationTargetException ex) &#123;</span><br><span class="line">        throw new BeanCreationException(beanName, &quot;Invocation of init method failed&quot;, ex.getTargetException());</span><br><span class="line">    &#125;</span><br><span class="line">    catch (Throwable ex) &#123;</span><br><span class="line">        throw new BeanCreationException(beanName, &quot;Couldn&apos;t invoke init method&quot;, ex);</span><br><span class="line">    &#125;</span><br><span class="line">    return bean;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>这里可以看出，@PostConstruct 其实也是通过 BeanPostProcessor 机制来实现的，<br>这个可以说是 BeanPostProcessor 使用的一个非常好的例子的。其中 LifecycleMetadata 存储了添加了<br>@PostConstruct 注解的所有方法，然后通过反射循环调用所有的对应的方法。这里的源码就不继续深究了，有兴趣的可以自行查看下 </p>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li><p>这里就可以得出 @PostConstruct、BeanPostProcessor、InitializingBean 他们之间的调用关系：</p>
-<p>BeanPostProcessor.postProcessBeforeInitialization→ @PostConstruct→ InitializingBean→ BeanPostProcessor.postProcessAfterInitialization</p>
-<p>既然 @PostConstruct、BeanPostProcessor、InitializingBean 都可以实现在 Bean 初始化完成后执行特定的操作，至于使用哪种还是看项目的使用习惯了，通常来说 InitializingBean 是使用最多的，<br>@PostConstruct 使用注解的方式来实现的话不够直观，对后期维护来说可能不太适合。<br>BeanPostProcessor 比较适合在框架类型或者面向特定接口使用。 这里重点还是 BeanPostProcessor，<br>通过这个接口可以进行更多的业务逻辑操作，至于如何取舍那么就需要看项目的实际情况了</p>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/04/16/mybatis-myBatis与SpringBoot的结合及代码分析/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Rick Liu">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar-user.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="每天进步一小点">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2018/04/16/mybatis-myBatis与SpringBoot的结合及代码分析/" class="post-title-link" itemprop="url">MyBatis与SpringBoot的结合及代码分析</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2018-04-16 22:12:04" itemprop="dateCreated datePublished" datetime="2018-04-16T22:12:04+08:00">2018-04-16</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2019-04-16 16:53:55" itemprop="dateModified" datetime="2019-04-16T16:53:55+08:00">2019-04-16</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/myBatis/" itemprop="url" rel="index"><span itemprop="name">myBatis</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>MyBatis提供了MyBatis-Spring-Boot-Starter项目用于MyBatis与SpringBoot的整合。充分利用了SpringBoot自动配置的优点，使用起来非常方便。我们来看一下简单的使用：<br></p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2018/04/16/mybatis-myBatis与SpringBoot的结合及代码分析/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/04/15/mybatis-myBatis-spring结合及源码分析/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Rick Liu">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar-user.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="每天进步一小点">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2018/04/15/mybatis-myBatis-spring结合及源码分析/" class="post-title-link" itemprop="url">myBatis-spring结合及源码分析</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2018-04-15 16:12:04" itemprop="dateCreated datePublished" datetime="2018-04-15T16:12:04+08:00">2018-04-15</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2019-04-16 12:41:53" itemprop="dateModified" datetime="2019-04-16T12:41:53+08:00">2019-04-16</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/myBatis/" itemprop="url" rel="index"><span itemprop="name">myBatis</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>MyBatis与Spring的结合依赖于MyBatis-Spring。MyBatis-Spring会帮助你将MyBatis代码无缝地整合到Spring中。使用这个类库中的类，Spring将会加载必要的MyBatis工厂类和session类。这个类库也提供一个简单的方式来注入MyBatis数据映射器和SqlSession到业务层的bean中。而且它也会处理事务，翻译MyBatis的异常到Spring的DataAccessException异常（数据异常）。<br></p>
-          <!--noindex-->
-          
-            <div class="post-button text-center">
-              <a class="btn" href="/2018/04/15/mybatis-myBatis-spring结合及源码分析/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2449,7 +2755,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">14</span>
+                    <span class="site-state-item-count">17</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2581,19 +2887,19 @@
                     </li>
                   
                     <li>
+                      <a href="/2018/07/03/jvm-jvm类加载机制/" title="jvm类加载机制" target="_blank">jvm类加载机制</a>
+                    </li>
+                  
+                    <li>
+                      <a href="/2018/06/29/jvm-jvm性能调优/" title="jvm性能调优" target="_blank">jvm性能调优</a>
+                    </li>
+                  
+                    <li>
+                      <a href="/2018/06/27/jvm-jvm垃圾回收分析/" title="jvm垃圾回收分析" target="_blank">jvm垃圾回收分析</a>
+                    </li>
+                  
+                    <li>
                       <a href="/2018/06/23/jvm-jvm内存溢出分析/" title="jvm内存溢出分析" target="_blank">jvm内存溢出分析</a>
-                    </li>
-                  
-                    <li>
-                      <a href="/2018/06/22/jvm-jvm内存区域解读/" title="jvm内存区域解读" target="_blank">jvm内存区域解读</a>
-                    </li>
-                  
-                    <li>
-                      <a href="/2018/06/12/nginx-nginx整理/" title="nginx整理" target="_blank">nginx整理</a>
-                    </li>
-                  
-                    <li>
-                      <a href="/2018/06/11/nginx-nginx安装/" title="nginx安装" target="_blank">nginx安装</a>
                     </li>
                   
                 </ul>
