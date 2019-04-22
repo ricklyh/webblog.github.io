@@ -508,6 +508,499 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/07/12/jvm-jvm调优工具说明/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rick Liu">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar-user.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进步一小点">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2018/07/12/jvm-jvm调优工具说明/" class="post-title-link" itemprop="url">jvm调优工具说明</a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-07-12 12:12:04" itemprop="dateCreated datePublished" datetime="2018-07-12T12:12:04+08:00">2018-07-12</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-04-22 22:38:08" itemprop="dateModified" datetime="2019-04-22T22:38:08+08:00">2019-04-22</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/jvm/" itemprop="url" rel="index"><span itemprop="name">jvm</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="JVM调优工具"><a href="#JVM调优工具" class="headerlink" title="JVM调优工具"></a>JVM调优工具</h2><ul>
+<li><p>JVM配置以及调优是Java程序员进阶必须掌握的，一个优秀的Java程序员可以根据运行环境设置JVM参数，从而达到最优配置，合理充分的利用系统资源，避免生产环境发生一些如OOM的异常或者线程死锁、Java进程CPU消耗过高等问题</p>
+</li>
+<li><p>注意！！！：使用的jdk版本是jdk8,查看本机的初始化参数：java -XX:+PrintFlagsInitial</p>
+</li>
+</ul>
+<h2 id="jps"><a href="#jps" class="headerlink" title="jps"></a>jps</h2><ul>
+<li><p>JVM Process Status Tool,显示指定系统内所有的HotSpot虚拟机进程</p>
+</li>
+<li><p>命令格式</p>
+<ul>
+<li>jps [options] [hostid]</li>
+<li>option参数</li>
+<li>-l : 输出主类全名或jar路径</li>
+<li>-q : 只输出LVMID</li>
+<li>-m : 输出JVM启动时传递给main()的参数</li>
+<li>-v : 输出JVM启动时显示指定的JVM参数</li>
+<li>其中[option]、[hostid]参数也可以不写</li>
+</ul>
+</li>
+<li><p>示例  jps -ml 或 jps -l -m<br><img src="/2018/07/12/jvm-jvm调优工具说明/jps1.png" alt="jvmjps" title="Optional title">  </p>
+</li>
+</ul>
+<h2 id="jstat"><a href="#jstat" class="headerlink" title="jstat"></a>jstat</h2><ul>
+<li><p>jstat(JVM statistics Monitoring)是用于监视虚拟机运行时状态信息的命令，它可以显示出虚拟机进程中的类装载、内存、垃圾收集、JIT编译等运行数据    </p>
+</li>
+<li><p>命令格式</p>
+<ul>
+<li>jstat [option] LVMID [interval] [count]</li>
+<li>参数</li>
+<li>[option] : 操作参数</li>
+<li>LVMID : 本地虚拟机进程ID</li>
+<li>[interval] : 连续输出的时间间隔</li>
+<li>[count] : 连续输出的次数</li>
+</ul>
+</li>
+</ul>
+<h3 id="类加载统计"><a href="#类加载统计" class="headerlink" title="类加载统计"></a>类加载统计</h3><ul>
+<li><img src="/2018/07/12/jvm-jvm调优工具说明/jstat0.png" alt="jstat" title="Optional title"> <ul>
+<li>显示字段含义<ul>
+<li>Loaded:加载class的数量</li>
+<li>Bytes：所占用空间大小</li>
+<li>Unloaded：未加载数量</li>
+<li>Bytes:未加载占用空间</li>
+<li>Time：时间</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="编译统计"><a href="#编译统计" class="headerlink" title="编译统计"></a>编译统计</h3><ul>
+<li><img src="/2018/07/12/jvm-jvm调优工具说明/jstat1.png" alt="jstat" title="Optional title"> <ul>
+<li>显示字段含义<ul>
+<li>Compiled：编译数量。</li>
+<li>Failed：失败数量</li>
+<li>Invalid：不可用数量</li>
+<li>Time：时间</li>
+<li>FailedType：失败类型</li>
+<li>FailedMethod：失败的方法</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="垃圾回收统计"><a href="#垃圾回收统计" class="headerlink" title="垃圾回收统计"></a>垃圾回收统计</h3><ul>
+<li><img src="/2018/07/12/jvm-jvm调优工具说明/jstat2.png" alt="jstat" title="Optional title"> <ul>
+<li>显示字段含义<ul>
+<li>S0C：第一个幸存区的大小</li>
+<li>S1C：第二个幸存区的大小</li>
+<li>S0U：第一个幸存区的使用大小</li>
+<li>S1U：第二个幸存区的使用大小</li>
+<li>EC：伊甸园区的大小</li>
+<li>EU：伊甸园区的使用大小</li>
+<li>OC：老年代大小</li>
+<li>OU：老年代使用大小</li>
+<li>MC：方法区大小</li>
+<li>MU：方法区使用大小</li>
+<li>CCSC:压缩类空间大小</li>
+<li>CCSU:压缩类空间使用大小</li>
+<li>YGC：年轻代垃圾回收次数</li>
+<li>YGCT：年轻代垃圾回收消耗时间</li>
+<li>FGC：老年代垃圾回收次数</li>
+<li>FGCT：老年代垃圾回收消耗时间</li>
+<li>GCT：垃圾回收消耗总时间</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="堆内存统计"><a href="#堆内存统计" class="headerlink" title="堆内存统计"></a>堆内存统计</h3><ul>
+<li><img src="/2018/07/12/jvm-jvm调优工具说明/jstat3.png" alt="jstat" title="Optional title"> <ul>
+<li>显示字段含义<ul>
+<li>NGCMN：新生代最小容量</li>
+<li>NGCMX：新生代最大容量</li>
+<li>NGC：当前新生代容量</li>
+<li>S0C：第一个幸存区大小</li>
+<li>S1C：第二个幸存区的大小</li>
+<li>EC：伊甸园区的大小</li>
+<li>OGCMN：老年代最小容量</li>
+<li>OGCMX：老年代最大容量</li>
+<li>OGC：当前老年代大小</li>
+<li>OC:当前老年代大小</li>
+<li>MCMN:最小元数据容量</li>
+<li>MCMX：最大元数据容量</li>
+<li>MC：当前元数据空间大小</li>
+<li>CCSMN：最小压缩类空间大小</li>
+<li>CCSMX：最大压缩类空间大小</li>
+<li>CCSC：当前压缩类空间大小</li>
+<li>YGC：年轻代gc次数</li>
+<li>FGC：老年代GC次数</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="新生代垃圾回收统计"><a href="#新生代垃圾回收统计" class="headerlink" title="新生代垃圾回收统计"></a>新生代垃圾回收统计</h3><ul>
+<li><img src="/2018/07/12/jvm-jvm调优工具说明/jstat4.png" alt="jstat" title="Optional title"> <ul>
+<li>显示字段含义<ul>
+<li>S0C：第一个幸存区大小</li>
+<li>S1C：第二个幸存区的大小</li>
+<li>S0U：第一个幸存区的使用大小</li>
+<li>S1U：第二个幸存区的使用大小</li>
+<li>TT:对象在新生代存活的次数</li>
+<li>MTT:对象在新生代存活的最大次数</li>
+<li>DSS:期望的幸存区大小</li>
+<li>EC：伊甸园区的大小</li>
+<li>EU：伊甸园区的使用大小</li>
+<li>YGC：年轻代垃圾回收次数</li>
+<li>GCT：年轻代垃圾回收消耗时间</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="新生代内存统计"><a href="#新生代内存统计" class="headerlink" title="新生代内存统计"></a>新生代内存统计</h3><ul>
+<li><img src="/2018/07/12/jvm-jvm调优工具说明/jstat5.png" alt="jstat" title="Optional title"> <ul>
+<li>显示字段含义<ul>
+<li>NGCMN：新生代最小容量</li>
+<li>NGCMX：新生代最大容量</li>
+<li>NGC：当前新生代容量</li>
+<li>S0CMX：最大幸存1区大小</li>
+<li>S0C：当前幸存1区大小</li>
+<li>S1CMX：最大幸存2区大小</li>
+<li>S1C：当前幸存2区大小</li>
+<li>ECMX：最大伊甸园区大小</li>
+<li>EC：当前伊甸园区大小</li>
+<li>YGC：年轻代垃圾回收次数</li>
+<li>FGC：老年代回收次数</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="老年代垃圾统计"><a href="#老年代垃圾统计" class="headerlink" title="老年代垃圾统计"></a>老年代垃圾统计</h3><ul>
+<li><img src="/2018/07/12/jvm-jvm调优工具说明/jstat6.png" alt="jstat" title="Optional title"> <ul>
+<li>显示字段含义<ul>
+<li>MC：方法区大小</li>
+<li>MU：方法区使用大小</li>
+<li>CCSC:压缩类空间大小</li>
+<li>CCSU:压缩类空间使用大小</li>
+<li>OC：老年代大小</li>
+<li>OU：老年代使用大小</li>
+<li>YGC：年轻代垃圾回收次数</li>
+<li>FGC：老年代垃圾回收次数</li>
+<li>FGCT：老年代垃圾回收消耗时间</li>
+<li>GCT：垃圾回收消耗总时间</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="老年代内存统计"><a href="#老年代内存统计" class="headerlink" title="老年代内存统计"></a>老年代内存统计</h3><ul>
+<li><img src="/2018/07/12/jvm-jvm调优工具说明/jstat7.png" alt="jstat" title="Optional title"> <ul>
+<li>显示字段含义<ul>
+<li>OGCMN：老年代最小容量</li>
+<li>OGCMX：老年代最大容量</li>
+<li>OGC：当前老年代大小</li>
+<li>OC：老年代大小</li>
+<li>YGC：年轻代垃圾回收次数</li>
+<li>FGC：老年代垃圾回收次数</li>
+<li>FGCT：老年代垃圾回收消耗时间</li>
+<li>GCT：垃圾回收消耗总时间</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="元数据空间统计"><a href="#元数据空间统计" class="headerlink" title="元数据空间统计"></a>元数据空间统计</h3><ul>
+<li>jstat -gcmetacapacity [LVMID]</li>
+<li><img src="/2018/07/12/jvm-jvm调优工具说明/jstat8.png" alt="jstat" title="Optional title"> <ul>
+<li>显示字段含义<ul>
+<li>MCMN: 最小元数据容量</li>
+<li>MCMX：最大元数据容量</li>
+<li>MC：当前元数据空间大小</li>
+<li>CCSMN：最小压缩类空间大小</li>
+<li>CCSMX：最大压缩类空间大小</li>
+<li>CCSC：当前压缩类空间大小</li>
+<li>YGC：年轻代垃圾回收次数</li>
+<li>FGC：老年代垃圾回收次数</li>
+<li>FGCT：老年代垃圾回收消耗时间</li>
+<li>GCT：垃圾回收消耗总时间</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="总结垃圾回收统计"><a href="#总结垃圾回收统计" class="headerlink" title="总结垃圾回收统计"></a>总结垃圾回收统计</h3><ul>
+<li>jstat -gcutil 17063 1s 10</li>
+<li>jstat -gcutil 17063 1s #一直连续输出</li>
+<li><img src="/2018/07/12/jvm-jvm调优工具说明/jstat9.png" alt="jstat" title="Optional title"> <ul>
+<li>显示字段含义<ul>
+<li>S0：幸存1区当前使用比例</li>
+<li>S1：幸存2区当前使用比例</li>
+<li>E：伊甸园区使用比例</li>
+<li>O：老年代使用比例</li>
+<li>M：元数据区使用比例</li>
+<li>CCS：压缩使用比例</li>
+<li>YGC：年轻代垃圾回收次数</li>
+<li>FGC：老年代垃圾回收次数</li>
+<li>FGCT：老年代垃圾回收消耗时间</li>
+<li>GCT：垃圾回收消耗总时间</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="JVM编译方法统计"><a href="#JVM编译方法统计" class="headerlink" title="JVM编译方法统计"></a>JVM编译方法统计</h3><ul>
+<li><img src="/2018/07/12/jvm-jvm调优工具说明/jstat10.png" alt="jstat" title="Optional title"> <ul>
+<li>显示字段含义<ul>
+<li>Compiled：最近编译方法的数量</li>
+<li>Size：最近编译方法的字节码数量</li>
+<li>Type：最近编译方法的编译类型</li>
+<li>Method：方法名标识</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="jmap"><a href="#jmap" class="headerlink" title="jmap"></a>jmap</h2><ul>
+<li>jmap(JVM Memory Map)命令用于生成heap dump文件</li>
+<li>如果不使用这个命令，还可以使用-XX:+HeapDumpOnOutOfMemoryError参数来让虚拟机出现OOM的时候·自动生成dump文件</li>
+<li><p>jmap不仅能生成dump文件，还可以查询finalize执行队列、Java堆和永久代的详细信息，如当前使用率、当前使用的是哪种收集器等</p>
+</li>
+<li><p>命令格式</p>
+<ul>
+<li>jmap [option] LVMID</li>
+<li>option参数</li>
+<li>dump : 生成堆转储快照(会引发full GC)</li>
+<li>finalizerinfo : 显示在F-Queue队列等待Finalizer线程执行finalizer方法的对象</li>
+<li>heap : 显示Java堆详细信息</li>
+<li>histo : 显示堆中对象的统计信息(会引发full GC)</li>
+<li>permstat : to print permanent generation statistics</li>
+<li>F : 当-dump没有响应时，强制生成dump快照</li>
+</ul>
+</li>
+<li><p>导出整个JVM 中内存信息</p>
+<ul>
+<li>jmap -dump:format=b,file=文件名 [pid] ;比如：jmap -dump:format=b,file=/Users/lyh/Desktop/dumplock.hprof 20705</li>
+<li>示例：jmap -histo pid 展示class的内存情况:<br><img src="/2018/07/12/jvm-jvm调优工具说明/jmap0.png" alt="jmap" title="Optional title"></li>
+<li>显示字段含义<ul>
+<li>instance：对象实例个数</li>
+<li>bytes：总占用的字节数</li>
+<li>class name:对应的就是 Class 文件里的 class 的标识</li>
+<li>B 代表 byte</li>
+<li>C 代表 char</li>
+<li>D 代表 double</li>
+<li>F 代表 float</li>
+<li>I 代表 int</li>
+<li>J 代表 long</li>
+<li>Z 代表 boolean</li>
+<li>前边有 [ 代表数组， [I 就相当于 int[]</li>
+<li>对象用 [L+ 类名表示</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="jhat"><a href="#jhat" class="headerlink" title="jhat"></a>jhat</h2><ul>
+<li>jhat(JVM Heap Analysis Tool)命令是与jmap搭配使用，用来分析jmap生成的dump，jhat内置了一个微型的HTTP/HTML服务器，生成dump的分析结果后，可以在浏览器中查看。</li>
+<li><p>在此要注意，一般不会直接在服务器上进行分析，因为jhat是一个耗时并且耗费硬件资源的过程，一般把服务器生成的dump文件复制到本地或其他机器上进行分析</p>
+</li>
+<li><p>命令格式</p>
+<ul>
+<li>jhat [dump file]</li>
+</ul>
+</li>
+</ul>
+<h2 id="jstack"><a href="#jstack" class="headerlink" title="jstack"></a>jstack</h2><ul>
+<li>jstack用于生成java虚拟机当前时刻的线程快照 </li>
+<li><p>命令格式</p>
+<ul>
+<li>jstack [ option ] pid</li>
+<li>jstack [ option ] executable core</li>
+<li>jstack [ option ] [server-id@]remote-hostname-or-IP</li>
+<li>option参数：</li>
+<li>-F : 当正常输出请求不被响应时，强制输出线程堆栈</li>
+<li>-l : 除堆栈外，显示关于锁的附加信息</li>
+<li>-m : 如果调用到本地方法的话，可以显示C/C++的堆栈</li>
+</ul>
+</li>
+<li><p>示例 输出文件：jstack -l 17063 &gt;1.txt</p>
+</li>
+<li><p>线程dump的分析工具</p>
+<ul>
+<li>IBM Thread and Monitor Dump Analyze for Java 一个小巧的Jar包，能方便的按状态，线程名称，线程停留的函数排序，快速浏览。</li>
+<li><a href="http://spotify.github.io/threaddump-analyzer" target="_blank" rel="noopener">http://spotify.github.io/threaddump-analyzer</a> Spotify提供的Web版在线分析工具，可以将锁或条件相关联的线程聚合到一起</li>
+</ul>
+</li>
+</ul>
+<h2 id="jinfo"><a href="#jinfo" class="headerlink" title="jinfo"></a>jinfo</h2><ul>
+<li>jinfo(JVM Configuration info)这个命令作用是实时查看和调整虚拟机运行参数。</li>
+<li>之前的jps -v口令只能查看到显示指定的参数，如果想要查看未被显示指定的参数的值就要使用jinfo口令</li>
+<li>命令格式<ul>
+<li>jinfo [option] [args] LVMID</li>
+<li>option参数：</li>
+<li>-flag : 输出指定args参数的值</li>
+<li>-flags : 不需要args参数，输出所有JVM参数的值</li>
+<li>-sysprops : 输出系统属性，等同于System.getProperties()</li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/07/03/jvm-jvm类加载机制/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2468,245 +2961,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/06/03/spring-boot-ConfigurationProperties实战与原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Rick Liu">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar-user.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="每天进步一小点">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2018/06/03/spring-boot-ConfigurationProperties实战与原理/" class="post-title-link" itemprop="url">ConfigurationProperties实战与原理</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2018-06-03 18:12:04" itemprop="dateCreated datePublished" datetime="2018-06-03T18:12:04+08:00">2018-06-03</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2019-04-19 15:59:01" itemprop="dateModified" datetime="2019-04-19T15:59:01+08:00">2019-04-19</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/spring-boot/" itemprop="url" rel="index"><span itemprop="name">spring boot</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><ul>
-<li><p>在 SpringBoot 中，当想需要获取到配置文件数据时，除了可以用 Spring 自带的 @Value 注解外，<br>SpringBoot 还提供了一种更加方便的方式：@ConfigurationProperties。只要在 Bean 上添加上了这个注解，<br>指定好配置文件的前缀，那么对应的配置文件数据就会自动填充到 Bean 中。举个例子，现在有如下配置：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">myconfig.name=test</span><br><span class="line">myconfig.age=22</span><br><span class="line">myconfig.desc=这是我的测试描述</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>添加对应的配置类，并添加上注解 @ConfigurationProperties，指定前缀为 myconfig：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@Component</span><br><span class="line">@ConfigurationProperties(prefix = &quot;myconfig&quot;)</span><br><span class="line">public class MyConfig &#123;</span><br><span class="line">private String name;</span><br><span class="line">private Integer age;</span><br><span class="line">private String desc;</span><br><span class="line">   //get/set 略</span><br><span class="line">   @Override</span><br><span class="line">public String toString() &#123;</span><br><span class="line">    return &quot;MyConfig [name=&quot; + name + &quot;, age=&quot; + age + &quot;, desc=&quot; + desc + &quot;]&quot;;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>测试并使用</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) throws Exception &#123;</span><br><span class="line">    SpringApplication springApplication = new SpringApplication(Application.class);</span><br><span class="line">    // 非web环境</span><br><span class="line">    springApplication.setWebEnvironment(false);</span><br><span class="line">    ConfigurableApplicationContext application = springApplication.run(args);</span><br><span class="line"></span><br><span class="line">    MyConfig config = application.getBean(MyConfig.class);</span><br><span class="line">    log.info(config.toString());</span><br><span class="line">    application.close();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">可以看到输出 log：</span><br><span class="line"></span><br><span class="line">com.cml.chat.lesson.lesson3.Application - MyConfig [name=test, age=22, desc=这是我的测试描述]</span><br></pre></td></tr></table></figure>
-<p>-</p>
-<h2 id="原理分析"><a href="#原理分析" class="headerlink" title="原理分析"></a>原理分析</h2></li>
-<li><p>首先进入 @ConfigurationProperties 源码中，可以看到如下注释提示：<br><img src="/2018/06/03/spring-boot-ConfigurationProperties实战与原理/properties.png" alt="ConfigurationProperties" title="Optional title"></p>
-</li>
-<li><p>See Also 中给我们推荐了 ConfigurationPropertiesBindingPostProcessor 和 EnableConfigurationProperties 两个类，EnableConfigurationProperties 先放到一边，<br>因为后面的文章中会详解 EnableXX 框架的实现原理，这里就先略过。那么重点来看看 ConfigurationPropertiesBindingPostProcessor，光看类名是不是很亲切？<br>不知上篇文章中讲的 BeanPostProcessor 是否还有印象，没有的话赶紧回头看看哦</p>
-</li>
-<li><p>ConfigurationPropertiesBindingPostProcessor</p>
-<ul>
-<li><p>一看就知道和 BeanPostProcessor 有扯不开的关系，进入源码可以看到，该类实现的 BeanPostProcessor 和其他多个接口</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public class ConfigurationPropertiesBindingPostProcessor implements BeanPostProcessor,</span><br><span class="line">    BeanFactoryAware, EnvironmentAware, ApplicationContextAware, InitializingBean,</span><br><span class="line">    DisposableBean, ApplicationListener&lt;ContextRefreshedEvent&gt;, PriorityOrdered</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>这里是不是非常直观，只看类的继承关系就可以猜出大概这个类做了什么。BeanFactoryAware、EnvironmentAware、ApplicationContextAware 是 Spring 提供的获取 Spring 上下文中指定对象的方法而且优先于 BeanPostProcessor 调用，至于如何工作的后面的文章会进行详解，这里只要先了解一下作用就可以了。</p>
-<p>此类同样实现了 InitializingBean 接口，从上篇文章中已经知道了 InitializingBean 是在 BeanPostProcessor.postProcessBeforeInitialization 之后调用，那么 postProcessBeforeInitialization 目前就是我们需要关注的重要入口方法</p>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="源码分析："><a href="#源码分析：" class="headerlink" title="源码分析："></a>源码分析：</h2><p>   先看看源码：<br>    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public Object postProcessBeforeInitialization(Object bean, String beanName)</span><br><span class="line">        throws BeansException &#123;</span><br><span class="line">    //直接通过查找添加了ConfigurationProperties注解的的类</span><br><span class="line">    ConfigurationProperties annotation = AnnotationUtils</span><br><span class="line">            .findAnnotation(bean.getClass(), ConfigurationProperties.class);</span><br><span class="line">    if (annotation != null) &#123;</span><br><span class="line">        postProcessBeforeInitialization(bean, beanName, annotation);</span><br><span class="line">    &#125;</span><br><span class="line">    //查找使用工厂bean中是否有ConfigurationProperties注解</span><br><span class="line">    annotation = this.beans.findFactoryAnnotation(beanName,</span><br><span class="line">            ConfigurationProperties.class);</span><br><span class="line">    if (annotation != null) &#123;</span><br><span class="line">        postProcessBeforeInitialization(bean, beanName, annotation);</span><br><span class="line">    &#125;</span><br><span class="line">    return bean;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private void postProcessBeforeInitialization(Object bean, String beanName,</span><br><span class="line">        ConfigurationProperties annotation) &#123;</span><br><span class="line">    Object target = bean;</span><br><span class="line">    PropertiesConfigurationFactory&lt;Object&gt; factory = new PropertiesConfigurationFactory&lt;Object&gt;(</span><br><span class="line">            target);</span><br><span class="line">    factory.setPropertySources(this.propertySources);</span><br><span class="line">    factory.setValidator(determineValidator(bean));</span><br><span class="line">    // If no explicit conversion service is provided we add one so that (at least)</span><br><span class="line">    // comma-separated arrays of convertibles can be bound automatically</span><br><span class="line">    factory.setConversionService(this.conversionService == null</span><br><span class="line">            ? getDefaultConversionService() : this.conversionService);</span><br><span class="line">    if (annotation != null) &#123;</span><br><span class="line">        factory.setIgnoreInvalidFields(annotation.ignoreInvalidFields());</span><br><span class="line">        factory.setIgnoreUnknownFields(annotation.ignoreUnknownFields());</span><br><span class="line">        factory.setExceptionIfInvalid(annotation.exceptionIfInvalid());</span><br><span class="line">        factory.setIgnoreNestedProperties(annotation.ignoreNestedProperties());</span><br><span class="line">        if (StringUtils.hasLength(annotation.prefix())) &#123;</span><br><span class="line">            factory.setTargetName(annotation.prefix());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    try &#123;</span><br><span class="line">        factory.bindPropertiesToTarget();</span><br><span class="line">    &#125;</span><br><span class="line">    catch (Exception ex) &#123;</span><br><span class="line">        String targetClass = ClassUtils.getShortName(target.getClass());</span><br><span class="line">        throw new BeanCreationException(beanName, &quot;Could not bind properties to &quot;</span><br><span class="line">                + targetClass + &quot; (&quot; + getAnnotationDetails(annotation) + &quot;)&quot;, ex);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<pre><code>+ 在 postProcessBeforeInitialization 方法中，会先去找所有添加了 ConfigurationProperties 注解的类对象，找到后调用 postProcessBeforeInitialization 进行属性数据装配。
-+ 那么现在可以将实现拆分成如何寻找和如何装配两部分来说明，首先先看下如何查找到 ConfigurationProperties 注解类呢？
-</code></pre><ul>
-<li>查找 ConfigurationProperties<ul>
-<li>在 postProcessBeforeInitialization 方法中先通过 AnnotationUtils 查找类是否添加了 @ConfigurationProperties 注解，然后再通过<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">this.beans.findFactoryAnnotation(beanName,</span><br><span class="line">            ConfigurationProperties.class);</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-</ul>
-<pre><code>+ 下面详解这两步查找的作用：
-
-  + AnnotationUtils：AnnotationUtils.findAnnotation(bean.getClass(),ConfigurationProperties.class);这个是 Spring 中常用的工具类了，通过反射的方式获取类上的注解，如果此类添加了注解 @ConfigurationProperties 那么这个方法会返回这个注解对象和类上配置的注解属性。
-
-  + beans.findFactoryAnnotation：这里的 beans 是 ConfigurationBeanFactoryMetaData 对象。在 Spring 中，可以以工厂 bean 的方式添加 Bean，这个类的作用就是在工程 Bean 中找到 @ConfigurationProperties 注解。下面分析下实现过程。
-
-- ConfigurationBeanFactoryMetaData
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">public class ConfigurationBeanFactoryMetaData implements BeanFactoryPostProcessor &#123;</span><br><span class="line"></span><br><span class="line">private ConfigurableListableBeanFactory beanFactory;</span><br><span class="line"></span><br><span class="line">private Map&lt;String, MetaData&gt; beans = new HashMap&lt;String, MetaData&gt;();</span><br><span class="line"></span><br><span class="line">@Override</span><br><span class="line">public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)</span><br><span class="line">        throws BeansException &#123;</span><br><span class="line">    this.beanFactory = beanFactory;</span><br><span class="line">  //迭代所有的bean定义，找出那些是工厂bean的对象添加到beans中</span><br><span class="line">    for (String name : beanFactory.getBeanDefinitionNames()) &#123;</span><br><span class="line">        BeanDefinition definition = beanFactory.getBeanDefinition(name);</span><br><span class="line">        String method = definition.getFactoryMethodName();</span><br><span class="line">        String bean = definition.getFactoryBeanName();</span><br><span class="line">        if (method != null &amp;&amp; bean != null) &#123;</span><br><span class="line">            this.beans.put(name, new MetaData(bean, method));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public &lt;A extends Annotation&gt; Map&lt;String, Object&gt; getBeansWithFactoryAnnotation(</span><br><span class="line">        Class&lt;A&gt; type) &#123;</span><br><span class="line">    Map&lt;String, Object&gt; result = new HashMap&lt;String, Object&gt;();</span><br><span class="line">    for (String name : this.beans.keySet()) &#123;</span><br><span class="line">        if (findFactoryAnnotation(name, type) != null) &#123;</span><br><span class="line">            result.put(name, this.beanFactory.getBean(name));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">public &lt;A extends Annotation&gt; A findFactoryAnnotation(String beanName,</span><br><span class="line">        Class&lt;A&gt; type) &#123;</span><br><span class="line">    Method method = findFactoryMethod(beanName);</span><br><span class="line">    return (method == null ? null : AnnotationUtils.findAnnotation(method, type));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//略...</span><br><span class="line"></span><br><span class="line">private static class MetaData &#123;</span><br><span class="line">    private String bean;</span><br><span class="line">    private String method;</span><br><span class="line">    //构造方法和其他方法略...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</code></pre><ul>
-<li><p>通过以上代码可以得出 ConfigurationBeanFactoryMetaData 的工作机制，通过实现 BeanFactoryPostProcessor，<br>在回调方法 postProcessBeanFactory 中，查找出所有通过工厂 Bean 实现的对象，并将其保存到 Beans Map 中，<br>通过方法 findFactoryAnnotation 可以查询到工厂 Bean 中是否添加了对应的注解。<br>那么这里的功能就是查找工厂 Bean 中有添加 @ConfigurationProperties 注解的类了</p>
-</li>
-<li><p>属性值注入</p>
-<ul>
-<li>通过上述步骤，已经确认了当前传入的 Bean 是否添加了 @ConfigurationProperties 注解。如果添加了则下一步就需要进行属性值注入了，核心代码在方法 postProcessBeforeInitialization 中：</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">  private void postProcessBeforeInitialization(Object bean, String beanName,</span><br><span class="line">        ConfigurationProperties annotation) &#123;</span><br><span class="line">    Object target = bean;</span><br><span class="line">    PropertiesConfigurationFactory&lt;Object&gt; factory = new PropertiesConfigurationFactory&lt;Object&gt;(</span><br><span class="line">            target);</span><br><span class="line">    //重点，这里设置数据来源</span><br><span class="line">    factory.setPropertySources(this.propertySources);</span><br><span class="line">    factory.setValidator(determineValidator(bean));</span><br><span class="line">    //设置转换器</span><br><span class="line">    factory.setConversionService(this.conversionService == null</span><br><span class="line">            ? getDefaultConversionService() : this.conversionService);</span><br><span class="line">    if (annotation != null) &#123;</span><br><span class="line">    //将annotation中配置的属性配置到factory中</span><br><span class="line">    &#125;</span><br><span class="line">    try &#123;</span><br><span class="line">        //这里是核心，绑定属性值到对象中</span><br><span class="line">        factory.bindPropertiesToTarget();</span><br><span class="line">    &#125;</span><br><span class="line">    catch (Exception ex) &#123;</span><br><span class="line">    //抛出异常</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li><p>继续跟进 factory.bindPropertiesToTarget 方法，在 bindPropertiesToTarget 方法中，调用的是 doBindPropertiesToTarget 方法：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"> private void doBindPropertiesToTarget() throws BindException &#123;</span><br><span class="line">    RelaxedDataBinder dataBinder </span><br><span class="line">    //略...</span><br><span class="line">    //1、获取bean中所有的属性名称</span><br><span class="line">    Set&lt;String&gt; names = getNames(relaxedTargetNames);</span><br><span class="line">    //2、将属性名称和前缀转换为配置文件的key值</span><br><span class="line">    PropertyValues propertyValues = getPropertySourcesPropertyValues(names,relaxedTargetNames);</span><br><span class="line">    //3、通过上面两个步骤找到的属性从配置文件中获取数据通过反射注入到bean中</span><br><span class="line">    dataBinder.bind(propertyValues);</span><br><span class="line">    //数据校验</span><br><span class="line">    if (this.validator != null) &#123;</span><br><span class="line">        dataBinder.validate();</span><br><span class="line">    &#125;</span><br><span class="line">    //判断数据绑定过程中是否有错误</span><br><span class="line">    checkForBindingErrors(dataBinder);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>上面代码中使用 dataBinder.bind 方法进行属性值赋值，源码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">  public void bind(PropertyValues pvs) &#123;</span><br><span class="line">    MutablePropertyValues mpvs = (pvs instanceof MutablePropertyValues) ?</span><br><span class="line">            (MutablePropertyValues) pvs : new MutablePropertyValues(pvs);</span><br><span class="line">    doBind(mpvs);</span><br><span class="line">&#125;</span><br><span class="line">protected void doBind(MutablePropertyValues mpvs) &#123;</span><br><span class="line">    checkAllowedFields(mpvs);</span><br><span class="line">    checkRequiredFields(mpvs);</span><br><span class="line">    //进行赋值</span><br><span class="line">    applyPropertyValues(mpvs);</span><br><span class="line">&#125;</span><br><span class="line">protected void applyPropertyValues(MutablePropertyValues mpvs) &#123;</span><br><span class="line">    try &#123;</span><br><span class="line">        // Bind request parameters onto target object.</span><br><span class="line">        getPropertyAccessor().setPropertyValues(mpvs, isIgnoreUnknownFields(), isIgnoreInvalidFields());</span><br><span class="line">    &#125;</span><br><span class="line">    catch (PropertyBatchUpdateException ex) &#123;</span><br><span class="line">        // Use bind error processor to create FieldErrors.</span><br><span class="line">        for (PropertyAccessException pae : ex.getPropertyAccessExceptions()) &#123;</span><br><span class="line">            getBindingErrorProcessor().processPropertyAccessException(pae, getInternalBindingResult());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-<li><p>经过以上步骤连续的方法调用后，最终调用的是 ConfigurablePropertyAccessor.setPropertyValues 使用反射进行设置属性值，到这里就不继续深入了。<br>想要继续深入了解的可以继续阅读源码，到最后可以发现调用的是 AbstractNestablePropertyAccessor.processLocalProperty 中使用反射进行赋值。<br>通过上面的代码分析就非常清晰明了的解释了如何查找 @ConfigurationProperties 对象和如何使用反射的方式进行赋值</p>
-</li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
-<li>通过上面的步骤分析了 @ConfigurationProperties 分析了如何筛选 Bean 到如何注入属性值的过程，整个过程的难度还不算高，没有什么特别的难点，这又是一个非常好的 BeanPostProcessor 使用场景说明</li>
-</ul>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2755,7 +3009,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">17</span>
+                    <span class="site-state-item-count">18</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2887,6 +3141,10 @@
                     </li>
                   
                     <li>
+                      <a href="/2018/07/12/jvm-jvm调优工具说明/" title="jvm调优工具说明" target="_blank">jvm调优工具说明</a>
+                    </li>
+                  
+                    <li>
                       <a href="/2018/07/03/jvm-jvm类加载机制/" title="jvm类加载机制" target="_blank">jvm类加载机制</a>
                     </li>
                   
@@ -2896,10 +3154,6 @@
                   
                     <li>
                       <a href="/2018/06/27/jvm-jvm垃圾回收分析/" title="jvm垃圾回收分析" target="_blank">jvm垃圾回收分析</a>
-                    </li>
-                  
-                    <li>
-                      <a href="/2018/06/23/jvm-jvm内存溢出分析/" title="jvm内存溢出分析" target="_blank">jvm内存溢出分析</a>
                     </li>
                   
                 </ul>
