@@ -124,7 +124,7 @@
 <meta property="og:image" content="http://mocwe.com/2018/06/27/jvm-jvm垃圾回收分析/jvm15.png">
 <meta property="og:image" content="http://mocwe.com/2018/06/27/jvm-jvm垃圾回收分析/jvm16.png">
 <meta property="og:image" content="http://mocwe.com/2018/06/27/jvm-jvm垃圾回收分析/jvm001.png">
-<meta property="og:updated_time" content="2019-04-20T07:46:20.143Z">
+<meta property="og:updated_time" content="2019-04-27T10:01:36.887Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="jvm垃圾回收分析">
 <meta name="twitter:description" content="JVM垃圾回收 垃圾回收，就是通过垃圾收集器把内存中没用的对象清理掉。垃圾回收涉及到的内容有： 判断对象是否已死 选择垃圾收集算法 选择垃圾收集时间 选择适当的垃圾收集器（已死对象）    判断对象是否已死 判断对象是否已死就是找出哪些对象是已经死掉的，以后不会再用到的，就像地上有废纸、饮料瓶和百元大钞，扫地前要先判断出地上废纸和饮料瓶是垃圾，百元大钞不是垃圾。判断对象是否已死有引用计数算法和可达">
@@ -426,7 +426,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2019-04-20 15:46:20" itemprop="dateModified" datetime="2019-04-20T15:46:20+08:00">2019-04-20</time>
+                <time title="修改时间：2019-04-27 18:01:36" itemprop="dateModified" datetime="2019-04-27T18:01:36+08:00">2019-04-27</time>
               
             
           </span>
@@ -610,7 +610,8 @@
 每50秒收集一次                7秒               88%
 </code></pre></li>
 <li>可以通过 -XX:MaxGCPauseMillis 来设置收集器尽可能在多长时间内完成内存回收，可以通过 -XX:GCTimeRatio 来精确控制吞吐量 </li>
-<li>如下是 Parallel 收集器和 Parallel Old 收集器结合进行垃圾收集的示意图，在新生代，当用户线程都执行到安全点时，所有线程暂停执行，ParNew 收集器以多线程，采用复制算法进行垃圾收集工作，收集完之后，用户线程继续开始执行；在老年代，当用户线程都执行到安全点时，所有线程暂停执行，Parallel Old 收集器以多线程，采用标记整理算法进行垃圾收集工作<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm11.png" alt="jvm" title="Optional title"></li>
+<li>如下是 Parallel 收集器和 Parallel Old 收集器结合进行垃圾收集的示意图，在新生代，当用户线程都执行到安全点时，所有线程暂停执行，ParNew 收集器以多线程，采用复制算法进行垃圾收集工作，收集完之后，用户线程继续开始执行；在老年代，当用户线程都执行到安全点时，所有线程暂停执行，Parallel Old 收集器以多线程，采用标记整理算法进行垃圾收集工作</li>
+<li>-XX:+UseAdaptiveSizePolicy:这是一个开关参数，当这个参数打开后，就不需要手工指定新生代的大小（-Xmn）、Eden与Survivor区的比例（-XX:SurvivorRatio）、晋升老年代对象年龄（-XX:PretenureSizeThreshold）等细节参数，只需要把基本的内存数据设置好（如-Xmx设置最大堆），然后使用MaxGVPauseMillis参数或GCTimeRation参数给虚拟机设立一个优化目标<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm11.png" alt="jvm" title="Optional title"></li>
 <li>适用场景：注重吞吐量，高效利用 CPU，需要高效运算且不需要太多交互。<br>可以使用 -XX:+UseParallelGC 来选择 Parallel Scavenge 作为新生代收集器，jdk7、jdk8 默认使用 Parallel Scavenge 作为新生代收集器</li>
 </ul>
 </li>
@@ -787,7 +788,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">18</span>
+                    <span class="site-state-item-count">23</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -816,7 +817,15 @@
                     
                       
                     
-                    <span class="site-state-item-count">6</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">10</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -845,7 +854,15 @@
                     
                       
                     
-                    <span class="site-state-item-count">6</span>
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">10</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -915,23 +932,23 @@
                   
                   
                     <li>
-                      <a href="/2019/04/12/maven-maven整理/" title="maven整理" target="_blank">maven整理</a>
+                      <a href="/2018/11/10/distributed-分布式Session一致性解决方案/" title="分布式Session一致性解决方案" target="_blank">分布式Session一致性解决方案</a>
                     </li>
                   
                     <li>
-                      <a href="/2018/07/12/jvm-jvm调优工具说明/" title="jvm调优工具说明" target="_blank">jvm调优工具说明</a>
+                      <a href="/2018/08/14/MQ-RabbitMQ入门/" title="RabbitMQ入门" target="_blank">RabbitMQ入门</a>
                     </li>
                   
                     <li>
-                      <a href="/2018/07/03/jvm-jvm类加载机制/" title="jvm类加载机制" target="_blank">jvm类加载机制</a>
+                      <a href="/2018/08/12/mysql-mysql事务级别/" title="mysql事务级别" target="_blank">mysql事务级别</a>
                     </li>
                   
                     <li>
-                      <a href="/2018/06/29/jvm-jvm性能调优/" title="jvm性能调优" target="_blank">jvm性能调优</a>
+                      <a href="/2018/08/04/并发-synchronized实现原理/" title="synchronized实现原理" target="_blank">synchronized实现原理</a>
                     </li>
                   
                     <li>
-                      <a href="/2018/06/27/jvm-jvm垃圾回收分析/" title="jvm垃圾回收分析" target="_blank">jvm垃圾回收分析</a>
+                      <a href="/2018/08/03/并发-volatile实现原理/" title="volatile实现原理" target="_blank">volatile实现原理</a>
                     </li>
                   
                 </ul>
