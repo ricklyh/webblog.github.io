@@ -341,6 +341,245 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2019/04/03/interview-面试问题总结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rick Liu">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar-user.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进步一小点">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2019/04/03/interview-面试问题总结/" class="post-title-link" itemprop="url">面试问题总结</a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-04-03 10:22:04" itemprop="dateCreated datePublished" datetime="2019-04-03T10:22:04+08:00">2019-04-03</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-04-30 21:47:31" itemprop="dateModified" datetime="2019-04-30T21:47:31+08:00">2019-04-30</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/interview/" itemprop="url" rel="index"><span itemprop="name">interview</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><ul>
+<li>相信大家在面试过程中，都会经历面试官一些问题答复，或多或少会有一些答不出来或者答的不好。其实面试过程就好比一次技术的交流，或者说是一次自我的技术检查，其实面试管对面试者的技术面试是看我们在工作中解决问题的思路与能，所以面试者需要认真对待每一次面试，我们都需要在面试中成长。所以我们需要做到如下几点：<ul>
+<li>面试过程中遇到不会的问题，需要铭刻记住，以便回来之后对技术的补充和复习</li>
+<li>尽量对不会的问题做到表里如一，由浅到深</li>
+<li>多动手实战，学会画流程图或者思维导图来加深自己对技能的掌握</li>
+<li>勤做技术笔记，形成一种良好的习惯，阅读官方文档或者源码分析</li>
+</ul>
+</li>
+</ul>
+<h2 id="面试问题"><a href="#面试问题" class="headerlink" title="面试问题"></a>面试问题</h2><ul>
+<li>以下是笔者在面试中遇到的一些问题，下面将以分类形式具体说明<h3 id="redis"><a href="#redis" class="headerlink" title="redis"></a>redis</h3></li>
+<li><p>我有个业务场景，需要往redis list 数据结构插入上百万数据量或者更多，如何提高插入速度和减轻网络磁盘IO消耗？</p>
+<ul>
+<li>笔者当时并未使用过 redis list，所以当时只想到了，可使用缓存批量插入</li>
+<li>经过查看redis提供以下两种方式：<ul>
+<li>利用redis pipline 管道技术</li>
+<li>把需要插入数据分块批量插入</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>实战</p>
+<ul>
+<li><p>举个例子需要添加1000万数据用于图标展示分析，现在需要把1000万的数字插入redis数据库</p>
+<ul>
+<li><p>普通的插入redis set集合方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">r = redis.Redis(host=&quot;127.0.0.1&quot;, port=6379)</span><br><span class="line">for i in range(1, 3 * 10 ** 8):</span><br><span class="line">    r.sadd(&apos;xxxxx&apos;, i)</span><br><span class="line"> </span><br><span class="line">数据量少还行，一次插入这么多数据就会出现问题</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>利用redis pipline 管道技术</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">r = redis.Redis(host=&quot;127.0.0.1&quot;, port=6379)</span><br><span class="line">pipeline = r.pipeline()</span><br><span class="line">for i in range(1, 3 * 10 ** 8):</span><br><span class="line">    pipeline.sadd(&apos;xxxxx&apos;, i)</span><br><span class="line">pipeline.execute()</span><br><span class="line"></span><br><span class="line">这种操作相当于写了一堆的命令一次性执行完，一旦某个命令出问题那么这次插入数据就会失败。这种方式的好处。节省了本机与redis服务器链接的 IO 延时，一般来说节省了很多时间</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>把需要插入的数据分块批量插入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">for i in range(30):</span><br><span class="line">   ls = list(range(i*1000000,(i+1)*1000000))</span><br><span class="line">   r.sadd(&apos;xxxxx&apos;, *ls)</span><br><span class="line"></span><br><span class="line">这样的方式是一次插入多个数据，不会出现使用pipline如果某个命令出问题就全部插入失败的现象，速度非常快，比使用pipline 的方式快了几倍</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="MQ消息队列"><a href="#MQ消息队列" class="headerlink" title="MQ消息队列"></a>MQ消息队列</h3><ul>
+<li>mq消息队列如何实现幂等性的？ </li>
+</ul>
+<h3 id="zookeeper"><a href="#zookeeper" class="headerlink" title="zookeeper"></a>zookeeper</h3><ul>
+<li>zookeeper Leader选举原理？</li>
+</ul>
+<h3 id="spring-mvc"><a href="#spring-mvc" class="headerlink" title="spring mvc"></a>spring mvc</h3><ul>
+<li><p>过滤器与拦截器的区别</p>
+<ul>
+<li><h4 id="过滤器："><a href="#过滤器：" class="headerlink" title="过滤器："></a>过滤器：</h4></li>
+<li><p>过滤器是javaEE标准，采用函数回调的方式进行。请求进入容器之后，还未进入servlet之前进行预处理，并且在请求结束返回给前端这之间进行处理</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">//实现过滤功能</span><br><span class="line">public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException &#123;</span><br><span class="line">    System.out.println(&quot;before...&quot;);</span><br><span class="line">    chain.doFilter(request, response);</span><br><span class="line">    System.out.println(&quot;after...&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">//用于完成Filter的初始化</span><br><span class="line">void init(FilterConfig config):</span><br><span class="line"></span><br><span class="line">//用于Filter销毁前，完成某些资源的回收</span><br><span class="line">void destory():</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>工作原理，在web.xml配置拦截客户请求，此时你可以对请求或者响应做统一设置编码，一些逻辑判断，如用户是否已登录，是否有权限访问页面等，Filter是随web容器启动的，只会初始化一次。</p>
+</li>
+<li><h4 id="拦截器："><a href="#拦截器：" class="headerlink" title="拦截器："></a>拦截器：</h4></li>
+<li>spring mvc 拦截器是基于java反射机制实现，会动态拦截指定的service方法，可对请求的共性抽取出来独立，可以共享一个行为，一旦行为发生改变，不必修改很多类，只需要更改这个行为就可以<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public interface HandlerInterceptor &#123;</span><br><span class="line">    //该方案将在请求处理前进行调用，spring mvc的interceptor是链式调用的，可以同时存在多个Interceptor，每个Interceptor调用会依据它的声明顺序依次执行</span><br><span class="line">    boolean preHandle(HttpServletRequest var1, HttpServletResponse var2, Object var3) throws Exception;</span><br><span class="line"></span><br><span class="line">    //当preHandle返回true此方案才会被调用，该方法就是在当前请求进行处理之后，也就是controller方法调用之后执行，会在视图返回渲染之前调用，也就是说这个方法对controller处理之后的ModelAndView对象进行操作</span><br><span class="line">    void postHandle(HttpServletRequest var1, HttpServletResponse var2, Object var3, ModelAndView var4) throws Exception;</span><br><span class="line"></span><br><span class="line">    //该方法也是需要当前对应的preHandle方法返回true才执行，此方法将在整个请求结束之后，也就是在DispatcherServlet渲染对应的视图之后执行。该方法主要作用是用于进行资源清理工作</span><br><span class="line">    void afterCompletion(HttpServletRequest var1, HttpServletResponse var2, Object var3, Exception var4) throws Exception;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>总结<ul>
+<li>Filter只在Servlet前后起作用且无法使用spring容器资源，而拦截器可以深入到方法前后，异常抛出前后等</li>
+<li>拦截器是一个Spring的组件，归Spring管理，配置在Spring文件中，因此能使用Spring里的任何资源、对象，例如 Service对象、数据源、事务管理等，通过IoC注入到拦截器即可</li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/11/10/distributed-分布式Session一致性解决方案/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1135,7 +1374,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/08/04/并发-synchronized实现原理/">
+    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/08/04/cocurrent-synchronized实现原理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Rick Liu">
@@ -1155,7 +1394,7 @@
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/2018/08/04/并发-synchronized实现原理/" class="post-title-link" itemprop="url">synchronized实现原理</a>
+                <a href="/2018/08/04/cocurrent-synchronized实现原理/" class="post-title-link" itemprop="url">synchronized实现原理</a>
               
             
           </h1>
@@ -1197,7 +1436,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2019-04-25 21:41:20" itemprop="dateModified" datetime="2019-04-25T21:41:20+08:00">2019-04-25</time>
+                <time title="修改时间：2019-04-29 09:41:14" itemprop="dateModified" datetime="2019-04-29T09:41:14+08:00">2019-04-29</time>
               
             
           </span>
@@ -1214,7 +1453,7 @@
                 <span class="post-meta-item-text">分类于</span>
               
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/并发/" itemprop="url" rel="index"><span itemprop="name">并发</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/cocurrent/" itemprop="url" rel="index"><span itemprop="name">cocurrent</span></a></span>
 
                 
                 
@@ -1255,7 +1494,7 @@
 <li><p>关键字 synchronized 可以修饰方法或者以同步块的形式来进行使用，它主要确保多个线程在同一个时刻，只能有一个线程处于方法或者同步块中，它保证了线程对变量访问的可见性和排他性</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">public class Synchronized &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        synchronized (Synchronized.class) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">        method();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static synchronized void method() &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>编译运行，然后使用命令：javap  -v SynchronizedDemo.class<br><img src="/2018/08/04/并发-synchronized实现原理/synchronized1.png" alt="synchronized" title="Optional title">  </p>
+<li><p>编译运行，然后使用命令：javap  -v SynchronizedDemo.class<br><img src="/2018/08/04/cocurrent-synchronized实现原理/synchronized1.png" alt="synchronized" title="Optional title">  </p>
 </li>
 <li><p>大致可以看出，对于上述代码中的同步块 的实现是通过monitorenter和monitorexit 指令，而同步方法是依靠方法修饰符上的ACC_SYNCHRONIZED 来完成的</p>
 </li>
@@ -1263,7 +1502,7 @@
 </li>
 <li><p>synchronized 允许使用任何的一个对象作为同步的内容，因此任意一个对象都应该拥有自己的监视器（monitor），当这个对象由同步块或者这个对象的同步方法调用时，执行方法的线程必须先获取到该对象的监视器才能进入同步块或者同步方法，而没有获取到监视器（执行该方法）的线程将会被阻塞在同步块和同步方法的入口处，进入BLOCKED状态</p>
 </li>
-<li><p>下图描述了对象、对象的监视器、同步队列和执行线程之间的关系：<br><img src="/2018/08/04/并发-synchronized实现原理/synchronized2.png" alt="synchronized" title="Optional title">  </p>
+<li><p>下图描述了对象、对象的监视器、同步队列和执行线程之间的关系：<br><img src="/2018/08/04/cocurrent-synchronized实现原理/synchronized2.png" alt="synchronized" title="Optional title">  </p>
 </li>
 <li><p>从上图中我们可以看到，任意线程对 Object（Object 由 synchronized 保护）的访问，首先要获得 Object 的监视器。如果获取失败，线程进入同步队列，线程状态变为BLOCKED。当访问 Object 的前驱（获得了锁的线程）释放了锁，则该释放操作唤醒阻塞在同步队列中的线程，使其重新尝试对监视器的获取</p>
 </li>
@@ -1273,10 +1512,10 @@
 </li>
 <li><p>从 JDK 对synchronized的优化，可以看出 Java 虚拟机对锁优化所做出的努力，下边我们就分别学习一下什么是偏向锁、轻量级锁、重量级锁、自旋锁</p>
 </li>
-<li><p>在理解这四种锁之前，我们先看一下synchronized锁的存放位置，synchronized 用的锁是存在 Java 对象头里的 ，如果对象是数组类型，则虚拟机用3个字宽（Word）存储对象头，如果对象是非数组类型，则用2字宽存储对象头。在32位虚拟机中，1字宽等于4字节，即 32bit，如下图：<br><img src="/2018/08/04/并发-synchronized实现原理/synchronized3.png" alt="synchronized" title="Optional title"> </p>
+<li><p>在理解这四种锁之前，我们先看一下synchronized锁的存放位置，synchronized 用的锁是存在 Java 对象头里的 ，如果对象是数组类型，则虚拟机用3个字宽（Word）存储对象头，如果对象是非数组类型，则用2字宽存储对象头。在32位虚拟机中，1字宽等于4字节，即 32bit，如下图：<br><img src="/2018/08/04/cocurrent-synchronized实现原理/synchronized3.png" alt="synchronized" title="Optional title"> </p>
 </li>
-<li>Java 对象头里的Mark Word里默认存储对象的 HashCode、分代年龄和锁标记位。32位 JVM 的Mark Word的默认存储结构如下图所示：<br><img src="/2018/08/04/并发-synchronized实现原理/synchronized4.png" alt="synchronized" title="Optional title"> </li>
-<li><p>在 Java SE 1.6 中，锁一共有4种状态，级别从低到高依次是：无锁状态、偏向锁状态、轻量级锁状态和重量级锁状态，这几个状态会随着竞争情况逐渐升级。锁可以升级但不能降级，意味着偏向锁升级成轻量级锁后不能降级成偏向锁。这种锁升级却不能降级的策略，目的是为了提高获得锁和释放锁的效率<br><img src="/2018/08/04/并发-synchronized实现原理/synchronized5.png" alt="synchronized" title="Optional title"> </p>
+<li>Java 对象头里的Mark Word里默认存储对象的 HashCode、分代年龄和锁标记位。32位 JVM 的Mark Word的默认存储结构如下图所示：<br><img src="/2018/08/04/cocurrent-synchronized实现原理/synchronized4.png" alt="synchronized" title="Optional title"> </li>
+<li><p>在 Java SE 1.6 中，锁一共有4种状态，级别从低到高依次是：无锁状态、偏向锁状态、轻量级锁状态和重量级锁状态，这几个状态会随着竞争情况逐渐升级。锁可以升级但不能降级，意味着偏向锁升级成轻量级锁后不能降级成偏向锁。这种锁升级却不能降级的策略，目的是为了提高获得锁和释放锁的效率<br><img src="/2018/08/04/cocurrent-synchronized实现原理/synchronized5.png" alt="synchronized" title="Optional title"> </p>
 </li>
 <li><p>下边分别研究一下这几个状态</p>
 </li>
@@ -1289,7 +1528,7 @@
 <li>当一个线程访问同步块并获取锁时，会在对象头和栈帧中的锁记录里存储锁偏向的线程 ID，以后该线程在进入和退出同步块时不需要进行 CAS 操作来加锁和解锁，只需简单地测试一下对象头的 Mark Word 里是否存储着指向当前线程的偏向锁</li>
 <li>如果测试成功，表示线程已经获得了锁。如果测试失败，则需要再测试一下 Mark Word 中偏向锁的标识是否设置成1（表示当前是偏向锁）</li>
 <li>如果没有设置，则使用 CAS 竞争锁</li>
-<li>具体流程图如下：<br><img src="/2018/08/04/并发-synchronized实现原理/synchronized6.png" alt="synchronized" title="Optional title"> </li>
+<li>具体流程图如下：<br><img src="/2018/08/04/cocurrent-synchronized实现原理/synchronized6.png" alt="synchronized" title="Optional title"> </li>
 </ul>
 </li>
 </ul>
@@ -1309,7 +1548,7 @@
 </ul>
 </li>
 </ul>
-<h2 id="三种锁的优缺点的对比"><a href="#三种锁的优缺点的对比" class="headerlink" title="三种锁的优缺点的对比"></a>三种锁的优缺点的对比</h2><p>   <img src="/2018/08/04/并发-synchronized实现原理/synchronized7.png" alt="synchronized" title="Optional title"> </p>
+<h2 id="三种锁的优缺点的对比"><a href="#三种锁的优缺点的对比" class="headerlink" title="三种锁的优缺点的对比"></a>三种锁的优缺点的对比</h2><p>   <img src="/2018/08/04/cocurrent-synchronized实现原理/synchronized7.png" alt="synchronized" title="Optional title"> </p>
 <h2 id="Java-虚拟机对锁优化所做的努力"><a href="#Java-虚拟机对锁优化所做的努力" class="headerlink" title="Java 虚拟机对锁优化所做的努力"></a>Java 虚拟机对锁优化所做的努力</h2><ul>
 <li>从 Java 虚拟机在优化 synchronized 的时候引入了：偏向锁、轻量级锁、重量级锁以及自旋锁，都可以看出 Java 虚拟机通过各种方式，尽量减少获取所和释放锁所带来的性能消耗</li>
 <li>但这还不全是 Java 虚拟机锁做的努力，另外还有：锁消除 、 CAS 等等，更重要的还有一个无锁的概念</li>
@@ -1370,7 +1609,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/08/03/并发-volatile实现原理/">
+    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/08/03/redis-redis入门实战/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Rick Liu">
@@ -1390,7 +1629,7 @@
           <h1 class="post-title" itemprop="name headline">
                 
                 
-                <a href="/2018/08/03/并发-volatile实现原理/" class="post-title-link" itemprop="url">volatile实现原理</a>
+                <a href="/2018/08/03/redis-redis入门实战/" class="post-title-link" itemprop="url">redis入门实战</a>
               
             
           </h1>
@@ -1432,7 +1671,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2019-04-25 21:41:15" itemprop="dateModified" datetime="2019-04-25T21:41:15+08:00">2019-04-25</time>
+                <time title="修改时间：2019-04-29 09:42:48" itemprop="dateModified" datetime="2019-04-29T09:42:48+08:00">2019-04-29</time>
               
             
           </span>
@@ -1449,7 +1688,7 @@
                 <span class="post-meta-item-text">分类于</span>
               
               
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/并发/" itemprop="url" rel="index"><span itemprop="name">并发</span></a></span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a></span>
 
                 
                 
@@ -1513,7 +1752,7 @@
 </li>
 </ul>
 <h2 id="CPU缓存带来的问题"><a href="#CPU缓存带来的问题" class="headerlink" title="CPU缓存带来的问题"></a>CPU缓存带来的问题</h2><ul>
-<li>用一张图表示一下 CPU –&gt; CPU缓存 –&gt; 主内存 数据读取之间的关系：<br><img src="/2018/08/03/并发-volatile实现原理/cpu1.png" alt="cache" title="Optional title">  </li>
+<li>用一张图表示一下 CPU –&gt; CPU缓存 –&gt; 主内存 数据读取之间的关系：<br><img src="/2018/08/03/redis-redis入门实战/cpu1.png" alt="cache" title="Optional title">  </li>
 <li><p>当系统运行时，CPU执行计算的过程如下：</p>
 <ul>
 <li>程序以及数据被加载到主内存</li>
@@ -1522,7 +1761,260 @@
 <li>高速缓存中的数据写回主内存</li>
 </ul>
 </li>
-<li><p>如果服务器是单核CPU，那么这些步骤不会有任何的问题，但是如果服务器是多核CPU，那么问题来了，以Intel Core i7处理器的高速缓存概念模型为例（图片来自《深入理解计算机系<br><img src="/2018/08/03/并发-volatile实现原理/cpu2.png" alt="cache" title="Optional title"> </p>
+<li><p>如果服务器是单核CPU，那么这些步骤不会有任何的问题，但是如果服务器是多核CPU，那么问题来了，以Intel Core i7处理器的高速缓存概念模型为例（图片来自《深入理解计算机系<br><img src="/2018/08/03/redis-redis入门实战/cpu2.png" alt="cache" title="Optional title"> </p>
+</li>
+<li><p>试想下面一种情况：</p>
+<ul>
+<li>核0读取了一个字节，根据局部性原理，它相邻的字节同样被被读入核0的缓存</li>
+<li>核3做了上面同样的工作，这样核0与核3的缓存拥有同样的数据</li>
+<li>核0修改了那个字节，被修改后，那个字节被写回核0的缓存，但是该信息并没有写回主存</li>
+<li>核3访问该字节，由于核0并未将数据写回主存，数据不同步</li>
+</ul>
+</li>
+<li><p>为了解决这一问题，CPU制造商规定了一个缓存一致性协议</p>
+</li>
+</ul>
+<h2 id="缓存一致性协议"><a href="#缓存一致性协议" class="headerlink" title="缓存一致性协议"></a>缓存一致性协议</h2><ul>
+<li>每个CPU都有一级缓存，但是，我们却无法保证每个CPU的一级缓存数据都是一样的。 所以同一个程序，CPU进行切换的时候，切换前和切换后的数据可能会有不一致的情况。那么这个就是一个很大的问题了。 如何保证各个CPU缓存中的数据是一致的。就是CPU的缓存一致性问题</li>
+</ul>
+<h3 id="总线锁"><a href="#总线锁" class="headerlink" title="总线锁"></a>总线锁</h3><ul>
+<li><p>一种处理一致性问题的办法是使用Bus Locking（总线锁）。当一个CPU对其缓存中的数据进行操作的时候，往总线中发送一个Lock信号。 这个时候，所有CPU收到这个信号之后就不操作自己缓存中的对应数据了，当操作结束，释放锁以后，所有的CPU就去内存中获取最新数据更新。</p>
+</li>
+<li><p>但是用锁的方式总是避不开性能问题。总线锁总是会导致CPU的性能下降。所以出现另外一种维护CPU缓存一致性的方式，MESI   </p>
+</li>
+</ul>
+<h3 id="MESI"><a href="#MESI" class="headerlink" title="MESI"></a>MESI</h3><ul>
+<li><p>MESI是保持一致性的协议。它的方法是在CPU缓存中保存一个标记位，这个标记位有四种状态:</p>
+<ul>
+<li>M: Modify，修改缓存，当前CPU的缓存已经被修改了，即与内存中数据已经不一致了；</li>
+<li>E: Exclusive，独占缓存，当前CPU的缓存和内存中数据保持一致，而且其他处理器并没有可使用的缓存数据；</li>
+<li>S: Share，共享缓存，和内存保持一致的一份拷贝，多组缓存可以同时拥有针对同一内存地址的共享缓存段；</li>
+<li>I: Invalid，失效缓存，这个说明CPU中的缓存已经不能使用了</li>
+</ul>
+</li>
+<li><p>CPU的读取遵循下面几点：</p>
+<ul>
+<li>如果缓存状态是I，那么就从内存中读取，否则就从缓存中直接读取。</li>
+<li>如果缓存处于M或E的CPU读取到其他CPU有读操作，就把自己的缓存写入到内存中，并将自己的状态设置为S。</li>
+<li>只有缓存状态是M或E的时候，CPU才可以修改缓存中的数据，修改后，缓存状态变为M</li>
+</ul>
+</li>
+<li><p>这样，每个CPU都遵循上面的方式则CPU的效率就提高上来了</p>
+</li>
+</ul>
+<h2 id="volatile两大作用"><a href="#volatile两大作用" class="headerlink" title="volatile两大作用"></a>volatile两大作用</h2><ul>
+<li>保证内存可见性</li>
+<li>防止指令重排</li>
+</ul>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/08/03/cocurrent-volatile实现原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rick Liu">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar-user.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进步一小点">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2018/08/03/cocurrent-volatile实现原理/" class="post-title-link" itemprop="url">volatile实现原理</a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-08-03 23:22:04" itemprop="dateCreated datePublished" datetime="2018-08-03T23:22:04+08:00">2018-08-03</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-04-29 09:41:05" itemprop="dateModified" datetime="2019-04-29T09:41:05+08:00">2019-04-29</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/cocurrent/" itemprop="url" rel="index"><span itemprop="name">cocurrent</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="Volatile含义"><a href="#Volatile含义" class="headerlink" title="Volatile含义"></a>Volatile含义</h2><ul>
+<li>在Java多线程并发编程中，volatile关键词扮演着重要角色，它是轻量级的synchronized，在多处理器开发中保证了共享变量的“可见性”。“可见性”的意思是当一个线程修改一个共享变量时，另外一个线程能读到这个修改的值。如果一个字段被声明为volatile，Java线程内存模型确保所有线程看到这个变量的值是一致的。与synchronized不同，volatile变量不会引起线程上下文的切换和调度，在适合的场景下拥有更低的执行成本和更高的效率</li>
+</ul>
+<h2 id="CPU缓存"><a href="#CPU缓存" class="headerlink" title="CPU缓存"></a>CPU缓存</h2><ul>
+<li>CPU缓存的出现主要是为了解决CPU运算速度与内存读写速度不匹配的矛盾，因为CPU运算速度要比内存读写速度快得多，举个例子：<ul>
+<li>一次主内存的访问通常在几十到几百个时钟周期</li>
+<li>一次L1高速缓存的读写只需要1~2个时钟周期</li>
+<li>一次L2高速缓存的读写也只需要数十个时钟周期</li>
+</ul>
+</li>
+<li><p>这种访问速度的显著差异，导致CPU可能会花费很长时间等待数据到来或把数据写入内存</p>
+</li>
+<li><p>基于此，现在CPU大多数情况下读写都不会直接访问内存（CPU都没有连接到内存的管脚），取而代之的是CPU缓存，CPU缓存是位于CPU与内存之间的临时存储器，它的容量比内存小得多但是交换速度却比内存快得多。而缓存中的数据是内存中的一小部分数据，但这一小部分是短时间内CPU即将访问的，当CPU调用大量数据时，就可先从缓存中读取，从而加快读取速度</p>
+</li>
+<li><p>按照读取顺序与CPU结合的紧密程度，CPU缓存可分为：</p>
+<ul>
+<li>一级缓存：简称L1 Cache，位于CPU内核的旁边，是与CPU结合最为紧密的CPU缓存。</li>
+<li>二级缓存：简称L2 Cache，分内部和外部两种芯片，内部芯片二级缓存运行速度与主频相同，外部芯片二级缓存运行速度则只有主频的一半。</li>
+<li>三级缓存：简称L3 Cache，部分高端CPU才有</li>
+</ul>
+</li>
+<li><p>每一级缓存中所存储的数据全部都是下一级缓存中的一部分，这三种缓存的技术难度和制造成本是相对递减的，所以其容量也相对递增  </p>
+</li>
+<li><p>当CPU要读取一个数据时，首先从一级缓存中查找，如果没有再从二级缓存中查找，如果还是没有再从三级缓存中或内存中查找。一般来说每级缓存的命中率大概都有80%左右，也就是说全部数据量的80%都可以在一级缓存中找到，只剩下20%的总数据量才需要从二级缓存、三级缓存或内存中读取</p>
+</li>
+</ul>
+<h2 id="CPU缓存带来的问题"><a href="#CPU缓存带来的问题" class="headerlink" title="CPU缓存带来的问题"></a>CPU缓存带来的问题</h2><ul>
+<li>用一张图表示一下 CPU –&gt; CPU缓存 –&gt; 主内存 数据读取之间的关系：<br><img src="/2018/08/03/cocurrent-volatile实现原理/cpu1.png" alt="cache" title="Optional title">  </li>
+<li><p>当系统运行时，CPU执行计算的过程如下：</p>
+<ul>
+<li>程序以及数据被加载到主内存</li>
+<li>指令和数据被加载到CPU缓存</li>
+<li>CPU执行指令，把结果写到高速缓存</li>
+<li>高速缓存中的数据写回主内存</li>
+</ul>
+</li>
+<li><p>如果服务器是单核CPU，那么这些步骤不会有任何的问题，但是如果服务器是多核CPU，那么问题来了，以Intel Core i7处理器的高速缓存概念模型为例（图片来自《深入理解计算机系<br><img src="/2018/08/03/cocurrent-volatile实现原理/cpu2.png" alt="cache" title="Optional title"> </p>
 </li>
 <li><p>试想下面一种情况：</p>
 <ul>
@@ -2642,595 +3134,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/06/27/jvm-jvm垃圾回收分析/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Rick Liu">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar-user.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="每天进步一小点">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2018/06/27/jvm-jvm垃圾回收分析/" class="post-title-link" itemprop="url">jvm垃圾回收分析</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2018-06-27 20:50:04" itemprop="dateCreated datePublished" datetime="2018-06-27T20:50:04+08:00">2018-06-27</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2019-04-27 18:01:36" itemprop="dateModified" datetime="2019-04-27T18:01:36+08:00">2019-04-27</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/jvm/" itemprop="url" rel="index"><span itemprop="name">jvm</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="JVM垃圾回收"><a href="#JVM垃圾回收" class="headerlink" title="JVM垃圾回收"></a>JVM垃圾回收</h2><ul>
-<li>垃圾回收，就是通过垃圾收集器把内存中没用的对象清理掉。垃圾回收涉及到的内容有：<ul>
-<li>判断对象是否已死</li>
-<li>选择垃圾收集算法</li>
-<li>选择垃圾收集时间</li>
-<li>选择适当的垃圾收集器（已死对象）</li>
-</ul>
-</li>
-</ul>
-<h3 id="判断对象是否已死"><a href="#判断对象是否已死" class="headerlink" title="判断对象是否已死"></a>判断对象是否已死</h3><ul>
-<li><p>判断对象是否已死就是找出哪些对象是已经死掉的，以后不会再用到的，就像地上有废纸、饮料瓶和百元大钞，扫地前要先判断出地上废纸和饮料瓶是垃圾，百元大钞不是垃圾。<br>判断对象是否已死有引用计数算法和可达性分析算法</p>
-<ul>
-<li><p>引用计数算法</p>
-<ul>
-<li><p>给每一个对象添加一个引用计数器，每当有一个地方引用它时，计数器值加 1；每当有一个地方不再引用它时，计数器值减 1，这样只要计数器的值不为 0，<br>就说明还有地方引用它，它就不是无用的对象。如下图，对象 2 有 1 个引用，它的引用计数器值为 1，对象 1有两个地方引用，它的引用计数器值为 2<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm1.png" alt="jvm" title="Optional title"></p>
-</li>
-<li><p>这种方法看起来非常简单，但目前许多主流的虚拟机都没有选用这种算法来管理内存，原因就是当某些对象之间互相引用时，无法判断出这些对象是否已死，如下图，<br>对象 1 和对象 2 都没有被堆外的变量引用，而是被对方互相引用，这时他们虽然没有用处了，但是引用计数器的值仍然是 1，无法判断他们是死对象，垃圾回收器也就无法回收<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm2.png" alt="jvm" title="Optional title"></p>
-</li>
-</ul>
-</li>
-<li><p>可达性分析算法</p>
-<ul>
-<li>了解可达性分析算法之前先了解一个概念——GC Roots，垃圾收集的起点，<br>可以作为 GC Roots 的有虚拟机栈中本地变量表中引用的对象、方法区中静态属性引用的对象、方法区中常量引用的对象、本地方法栈中 JNI（Native 方法）引用的对象  </li>
-<li>当一个对象到 GC Roots 没有任何引用链相连（GC Roots 到这个对象不可达）时，就说明此对象是不可用的，是死对象</li>
-<li>如下图：object1、object2、object3、object4 和 GC Roots 之间有可达路径，<br>这些对象不会被回收，但 object5、object6、object7 到 GC Roots 之间没有可达路径，这些对象就被判了死刑<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm3.png" alt="jvm" title="Optional title"></li>
-<li>上面被判了死刑的对象（object5、object6、object7）并不是必死无疑，还有挽救的余地。<br>进行可达性分析后对象和 GC Roots 之间没有引用链相连时，对象将会被进行一次标记，接着会判断如果对象没有覆盖 Object的finalize() 方法或者 finalize() 方法已经被虚拟机调用过<br>那么它们就会被行刑（清除）；如果对象覆盖了 finalize() 方法且还没有被调用，则会执行 finalize() 方法中的内容，所以在 finalize() 方法中如果重新与 GC Roots 引用链上的对象关联就可以拯救自己，<br>但是一般不建议这么做，周志明老师也建议大家完全可以忘掉这个方法</li>
-</ul>
-</li>
-<li><p>方法区回收</p>
-<ul>
-<li><p>上面说的都是对堆内存中对象的判断，方法区中主要回收的是废弃的常量和无用的类。<br>判断常量是否废弃可以判断是否有地方引用这个常量，如果没有引用则为废弃的常量。</p>
-</li>
-<li><p>判断类是否废弃需要同时满足如下条件：</p>
-<ul>
-<li><p>该类所有的实例已经被回收（堆中不存在任何该类的实例）。</p>
-</li>
-<li><p>加载该类的 ClassLoader 已经被回收。</p>
-</li>
-<li><p>该类对应的 java.lang.Class 对象在任何地方没有被引用（无法通过反射访问该类的方法）。</p>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>总结思维导图<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm003.png" alt="jvm" title="Optional title"></p>
-</li>
-</ul>
-<h3 id="常用垃圾回收算法"><a href="#常用垃圾回收算法" class="headerlink" title="常用垃圾回收算法"></a>常用垃圾回收算法</h3><ul>
-<li><p>常用的垃圾回收算法有三种：标记-清除算法、复制算法、标记-整理算法</p>
-<ul>
-<li>标记-清除算法：分为标记和清除两个阶段，首先标记出所有需要回收的对象，标记完成后统一回收所有被标记的对象，如下图</li>
-<li><p>缺点：标记和清除两个过程效率都不高；标记清除之后会产生大量不连续的内存碎片<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm4.png" alt="jvm" title="Optional title"></p>
-</li>
-<li><p>复制算法：把内存分为大小相等的两块，每次存储只用其中一块，当这一块用完了，就把存活的对象全部复制到另一块上，同时把使用过的这块内存空间全部清理掉，往复循环，如下图</p>
-</li>
-<li><p>缺点：实际可使用的内存空间缩小为原来的一半，比较适合<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm5.png" alt="jvm" title="Optional title"></p>
-</li>
-<li><p>标记-整理算法：先对可用的对象进行标记，然后所有被标记的对象向一段移动，最后清除可用对象边界以外的内存，如下图<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm6.png" alt="jvm" title="Optional title"></p>
-</li>
-<li><p>分代收集算法：把堆内存分为新生代和老年代，新生代又分为 Eden 区、From Survivor 和 To Survivor。一般新生代中的对象基本上都是朝生夕灭的，每次只有少量对象存活，因此采用复制算法，只需要复制那些少量存活的对象就可以完成垃圾收集；老年代中的对象存活率较高，就采用标记-清除和标记-整理算法来进行回收<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm7.png" alt="jvm" title="Optional title"></p>
-</li>
-<li><p>在这些区域的垃圾回收大概有如下几种情况:</p>
-<ul>
-<li>大多数情况下，新的对象都分配在Eden区，当 Eden 区没有空间进行分配时，将进行一次 Minor GC，清理 Eden 区中的无用对象。清理后，Eden 和 From Survivor 中的存活对象如果小于To Survivor 的可用空间则进入To Survivor，否则直接进入老年代）；Eden 和 From Survivor 中还存活且能够进入 To Survivor 的对象年龄增加 1 岁（虚拟机为每个对象定义了一个年龄计数器，每执行一次 Minor GC 年龄加 1），当存活对象的年龄到达一定程度（默认 15 岁）后进入老年代，可以通过 -XX:MaxTenuringThreshold 来设置年龄的值</li>
-<li>当进行了 Minor GC 后，Eden 还不足以为新对象分配空间（那这个新对象肯定很大），新对象直接进入老年代</li>
-<li>占 To Survivor 空间一半以上且年龄相等的对象，大于等于该年龄的对象直接进入老年代，比如 Survivor 空间是 10M，有几个年龄为 4 的对象占用总空间已经超过 5M，则年龄大于等于 4 的对象都直接进入老年代，不需要等到 MaxTenuringThreshold 指定的岁数</li>
-<li>在进行 Minor GC 之前，会判断老年代最大连续可用空间是否大于新生代所有对象总空间，如果大于，说明 Minor GC 是安全的，否则会判断是否允许担保失败，如果允许，判断老年代最大连续可用空间是否大于历次晋升到老年代的对象的平均大小，如果大于，则执行 Minor GC，否则执行 Full GC</li>
-<li>当在 java 代码里直接调用 System.gc() 时，会建议 JVM 进行 Full GC，但一般情况下都会触发 Full GC，一般不建议使用，尽量让虚拟机自己管理 GC 的策略</li>
-<li>永久代（方法区）中用于存放类信息，jdk1.6 及之前的版本永久代中还存储常量、静态变量等，当永久代的空间不足时，也会触发 Full GC，如果经过 Full GC 还无法满足永久代存放新数据的需求，就会抛出永久代的内存溢出异常</li>
-<li>大对象（需要大量连续内存的对象）例如很长的数组，会直接进入老年代，如果老年代没有足够的连续大空间来存放，则会进行 Full GC</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>总结思维导图<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm002.png" alt="jvm" title="Optional title"></p>
-</li>
-</ul>
-<h3 id="选择垃圾收集的时间"><a href="#选择垃圾收集的时间" class="headerlink" title="选择垃圾收集的时间"></a>选择垃圾收集的时间</h3><ul>
-<li><p>当程序运行时，各种数据、对象、线程、内存等都时刻在发生变化，当下达垃圾收集命令后就立刻进行收集吗？肯定不是。这里来了解两个概念：安全点（safepoint）和安全区（safe region）</p>
-<ul>
-<li><p>安全点</p>
-<ul>
-<li>从线程角度看，安全点可以理解为是在代码执行过程中的一些特殊位置，当线程执行到安全点的时候，说明虚拟机当前的状态是安全的，如果有需要，可以在这里暂停用户线程。当垃圾收集时，如果需要暂停当前的用户线程，但用户线程当时没在安全点上，则应该等待这些线程执行到安全点再暂停</li>
-<li>举个例子，妈妈在扫地，儿子在吃西瓜（瓜皮会扔到地上），妈妈扫到儿子跟前时，儿子说：“妈妈等一下，让我吃完这块再扫。”儿子吃完这块西瓜把瓜皮扔到地上后就是一个安全点，妈妈可以继续扫地（垃圾收集器可以继续收集垃圾）。理论上，解释器的每条字节码的边界上都可以放一个安全点，实际上，安全点基本上以“是否具有让程序长时间执行的特征”为标准进行选定</li>
-</ul>
-</li>
-<li><p>安全区</p>
-<ul>
-<li>安全点是相对于运行中的线程来说的，对于如sleep或blocked等状态的线程，收集器不会等待这些线程被分配CPU时间，这时候只要线程处于安全区中，就可以算是安全的。安全区就是在一段代码片段中，引用关系不会发生变化，可以看作是被扩展、拉长了的安全点</li>
-<li>还以上面的例子说明，妈妈在扫地，儿子在吃西瓜（瓜皮会扔到地上），妈妈扫到儿子跟前时，儿子说：“妈妈你继续扫地吧，我还得吃10分钟呢！”儿子吃瓜的这段时间就是安全区，妈妈可以继续扫地（垃圾收集器可以继续收集垃圾）</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>垃圾回收过程<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm004.png" alt="jvm" title="Optional title"></p>
-</li>
-</ul>
-<h3 id="常见垃圾收集器"><a href="#常见垃圾收集器" class="headerlink" title="常见垃圾收集器"></a>常见垃圾收集器</h3><ul>
-<li>常见的垃圾收集器有如下几种：<ul>
-<li>新生代收集器：Serial、ParNew、Parallel Scavenge。</li>
-<li>老年代收集器：Serial Old、CMS、Parallel Old</li>
-<li>堆内存垃圾收集器：G1</li>
-</ul>
-</li>
-<li><p>每种垃圾收集器之间有连线，表示他们可以搭配使用<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm8.png" alt="jvm" title="Optional title"></p>
-<ul>
-<li><p>Serial 收集器</p>
-<ul>
-<li>Serial 是一款用于新生代的单线程收集器，采用复制算法进行垃圾收集。Serial 进行垃圾收集时，不仅只用一条线程执行垃圾收集工作，它在收集的同时，所有的用户线程必须暂停（Stop The World）</li>
-<li>就比如妈妈在家打扫卫生的时候，肯定不会边打扫边让儿子往地上乱扔纸屑，否则一边制造垃圾，一遍清理垃圾，这活啥时候也干不完</li>
-<li>如下是 Serial 收集器和 Serial Old 收集器结合进行垃圾收集的示意图，当用户线程都执行到安全点时，所有线程暂停执行，Serial 收集器以单线程，采用复制算法进行垃圾收集工作，收集完之后，用户线程继续开始执行<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm9.png" alt="jvm" title="Optional title"></li>
-<li>适用场景：Client 模式（桌面应用）；单核服务器;可以用 -XX:+UserSerialGC 来选择 Serial 作为新生代收集器</li>
-</ul>
-</li>
-<li><p>ParNew 收集器</p>
-<ul>
-<li>ParNew 就是一个 Serial 的多线程版本，其它与Serial并无区别。ParNew 在单核 CPU 环境并不会比 Serial 收集器达到更好的效果，它默认开启的收集线程数和 CPU 数量一致，可以通过 -XX:ParallelGCThreads 来设置垃圾收集的线程数</li>
-<li>如下是 ParNew 收集器和 Serial Old 收集器结合进行垃圾收集的示意图，当用户线程都执行到安全点时，所有线程暂停执行，ParNew 收集器以多线程，采用复制算法进行垃圾收集工作，收集完之后，用户线程继续开始执行<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm10.png" alt="jvm" title="Optional title"></li>
-<li>适用场景：多核服务器；与 CMS 收集器搭配使用。当使用 -XX:+UserConcMarkSweepGC 来选择 CMS 作为老年代收集器时，新生代收集器默认就是 ParNew，也可以用 -XX:+UseParNewGC 来指定使用 ParNew 作为新生代收集器</li>
-</ul>
-</li>
-<li><p>Parallel Scavenge 收集器</p>
-<ul>
-<li>Parallel Scavenge 也是一款用于新生代的多线程收集器，与 ParNew 的不同之处是，ParNew 的目标是尽可能缩短垃圾收集时用户线程的停顿时间，Parallel Scavenge 的目标是达到一个可控制的吞吐量</li>
-<li><p>吞吐量就是 CPU 执行用户线程的的时间与 CPU 执行总时间的比值【吞吐量 = 运行用户代代码时间/（运行用户代码时间+垃圾收集时间）】，比如虚拟机一共运行了 100 分钟，其中垃圾收集花费了 1 分钟，那吞吐量就是 99% 。比如下面两个场景，垃圾收集器每 100 秒收集一次，每次停顿 10 秒，和垃圾收集器每 50 秒收集一次，每次停顿时间 7 秒，虽然后者每次停顿时间变短了，但是总体吞吐量变低了，CPU 总体利用率变低了</p>
-<pre><code>收集频率                 每次停堆时间           吞吐量
-每100秒收集一次              10秒               91%
-每50秒收集一次                7秒               88%
-</code></pre></li>
-<li>可以通过 -XX:MaxGCPauseMillis 来设置收集器尽可能在多长时间内完成内存回收，可以通过 -XX:GCTimeRatio 来精确控制吞吐量 </li>
-<li>如下是 Parallel 收集器和 Parallel Old 收集器结合进行垃圾收集的示意图，在新生代，当用户线程都执行到安全点时，所有线程暂停执行，ParNew 收集器以多线程，采用复制算法进行垃圾收集工作，收集完之后，用户线程继续开始执行；在老年代，当用户线程都执行到安全点时，所有线程暂停执行，Parallel Old 收集器以多线程，采用标记整理算法进行垃圾收集工作</li>
-<li>-XX:+UseAdaptiveSizePolicy:这是一个开关参数，当这个参数打开后，就不需要手工指定新生代的大小（-Xmn）、Eden与Survivor区的比例（-XX:SurvivorRatio）、晋升老年代对象年龄（-XX:PretenureSizeThreshold）等细节参数，只需要把基本的内存数据设置好（如-Xmx设置最大堆），然后使用MaxGVPauseMillis参数或GCTimeRation参数给虚拟机设立一个优化目标<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm11.png" alt="jvm" title="Optional title"></li>
-<li>适用场景：注重吞吐量，高效利用 CPU，需要高效运算且不需要太多交互。<br>可以使用 -XX:+UseParallelGC 来选择 Parallel Scavenge 作为新生代收集器，jdk7、jdk8 默认使用 Parallel Scavenge 作为新生代收集器</li>
-</ul>
-</li>
-<li><p>Serial Old 收集器</p>
-<ul>
-<li>Serial Old 收集器是 Serial 的老年代版本，同样是一个单线程收集器，采用标记-整理算法</li>
-<li>如下图是 Serial 收集器和 Serial Old 收集器结合进行垃圾收集的示意图：<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm12.png" alt="jvm" title="Optional title"></li>
-<li>适用场景：Client 模式（桌面应用）；单核服务器；与 Parallel Scavenge 收集器搭配；作为 CMS 收集器的后备预案</li>
-</ul>
-</li>
-<li><p>CMS(Concurrent Mark Sweep) 收集器</p>
-<ul>
-<li><p>CMS 收集器是一种以最短回收停顿时间为目标的收集器，以 “ 最短用户线程停顿时间 ” 著称。整个垃圾收集过程分为 4 个步骤：</p>
-<ul>
-<li>初始标记：标记一下 GC Roots 能直接关联到的对象，速度较快</li>
-<li>并发标记：进行 GC Roots Tracing，标记出全部的垃圾对象，耗时较长</li>
-<li>重新标记：修正并发标记阶段引用户程序继续运行而导致变化的对象的标记记录，耗时较短</li>
-<li>并发清除：用标记-清除算法清除垃圾对象，耗时较长</li>
-</ul>
-</li>
-<li><p>整个过程耗时最长的并发标记和并发清除都是和用户线程一起工作，所以从总体上来说，CMS 收集器垃圾收集可以看做是和用户线程并发执行的<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm13.png" alt="jvm" title="Optional title"></p>
-</li>
-<li>CMS 收集器也存在一些缺点：<ul>
-<li>对 CPU 资源敏感：默认分配的垃圾收集线程数为（CPU 数+3）/4，随着 CPU 数量下降，占用 CPU 资源越多，吞吐量越小</li>
-<li>无法处理浮动垃圾：在并发清理阶段，由于用户线程还在运行，还会不断产生新的垃圾，CMS 收集器无法在当次收集中清除这部分垃圾。同时由于在垃圾收集阶段用户线程也在并发执行，CMS 收集器不能像其他收集器那样等老年代被填满时再进行收集，需要预留一部分空间提供用户线程运行使用。当 CMS 运行时，预留的内存空间无法满足用户线程的需要，就会出现 “ Concurrent Mode Failure ” 的错误，这时将会启动后备预案，临时用 Serial Old 来重新进行老年代的垃圾收集</li>
-<li>因为 CMS 是基于标记-清除算法，所以垃圾回收后会产生空间碎片，可以通过 -XX:UserCMSCompactAtFullCollection 开启碎片整理（默认开启），在 CMS 进行 Full GC 之前，会进行内存碎片的整理。还可以用 -XX:CMSFullGCsBeforeCompaction 设置执行多少次不压缩（不进行碎片整理）的 Full GC 之后，跟着来一次带压缩（碎片整理）的 Full GC</li>
-</ul>
-</li>
-<li>适用场景：重视服务器响应速度，要求系统停顿时间最短。可以使用 -XX:+UserConMarkSweepGC 来选择 CMS 作为老年代收集器</li>
-</ul>
-</li>
-<li><p>Parallel Old 收集器</p>
-<ul>
-<li>Parallel Old 收集器是 Parallel Scavenge 的老年代版本，是一个多线程收集器，采用标记-整理算法。可以与 Parallel Scavenge 收集器搭配，可以充分利用多核 CPU 的计算能力<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm14.png" alt="jvm" title="Optional title"></li>
-<li>适用场景：与Parallel Scavenge 收集器搭配使用；注重吞吐量。jdk7、jdk8 默认使用该收集器作为老年代收集器，使用 -XX:+UseParallelOldGC 来指定使用 Paralle Old 收集器</li>
-</ul>
-</li>
-<li><p>G1 收集器</p>
-<ul>
-<li>G1 收集器是 jdk1.7 才正式引用的商用收集器，现在已经成为 jdk9 默认的收集器。前面几款收集器收集的范围都是新生代或者老年代，G1 进行垃圾收集的范围是整个堆内存，它采用 “ 化整为零 ” 的思路，把整个堆内存划分为多个大小相等的独立区域（Region），在 G1 收集器中还保留着新生代和老年代的概念，它们分别都是一部分 Region，如下图：<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm15.png" alt="jvm" title="Optional title"></li>
-<li>每一个方块就是一个区域，每个区域可能是 Eden、Survivor、老年代，每种区域的数量也不一定。JVM 启动时会自动设置每个区域的大小（1M ~ 32M，必须是 2 的次幂），最多可以设置 2048 个区域（即支持的最大堆内存为 32M*2048 = 64G），假如设置 -Xmx8g -Xms8g，则每个区域大小为 8g/2048=4M</li>
-<li>为了在 GC Roots Tracing 的时候避免扫描全堆，在每个 Region 中，都有一个 Remembered Set 来实时记录该区域内的引用类型数据与其他区域数据的引用关系（在前面的几款分代收集中，新生代、老年代中也有一个 Remembered Set 来实时记录与其他区域的引用关系），在标记时直接参考这些引用关系就可以知道这些对象是否应该被清除，而不用扫描全堆的数据</li>
-<li>G1 收集器可以 “ 建立可预测的停顿时间模型 ”，它维护了一个列表用于记录每个 Region 回收的价值大小（回收后获得的空间大小以及回收所需时间的经验值），这样可以保证 G1 收集器在有限的时间内可以获得最大的回收效率</li>
-<li>如下图所示，G1 收集器收集器收集过程有初始标记、并发标记、最终标记、筛选回收，和 CMS 收集器前几步的收集过程很相似：<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm16.png" alt="jvm" title="Optional title"><br> 初始标记：标记出 GC Roots 直接关联的对象，这个阶段速度较快，需要停止用户线程，单线程执行<ul>
-<li>并发标记：从 GC Root 开始对堆中的对象进行可达新分析，找出存活对象，这个阶段耗时较长，但可以和用户线程并发执行</li>
-<li>并发标记：从 GC Root 开始对堆中的对象进行可达新分析，找出存活对象，这个阶段耗时较长，但可以和用户线程并发执行</li>
-<li>筛选回收：筛选回收阶段会对各个 Region 的回收价值和成本进行排序，根据用户所期望的 GC 停顿时间来指定回收计划（用最少的时间来回收包含垃圾最多的区域，这就是 Garbage First 的由来——第一时间清理垃圾最多的区块），这里为了提高回收效率，并没有采用和用户线程并发执行的方式，而是停顿用户线程</li>
-</ul>
-</li>
-<li>适用场景：要求尽可能可控 GC 停顿时间；内存占用较大的应用。可以用 -XX:+UseG1GC 使用 G1 收集器，jdk9 默认使用 G1 收集器 </li>
-</ul>
-</li>
-<li><p>总结思维导图<br><img src="/2018/06/27/jvm-jvm垃圾回收分析/jvm001.png" alt="jvm" title="Optional title"></p>
-</li>
-</ul>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/06/23/jvm-jvm内存溢出分析/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Rick Liu">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar-user.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="每天进步一小点">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2018/06/23/jvm-jvm内存溢出分析/" class="post-title-link" itemprop="url">jvm内存溢出分析</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2018-06-23 20:33:04" itemprop="dateCreated datePublished" datetime="2018-06-23T20:33:04+08:00">2018-06-23</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2019-04-20 14:24:45" itemprop="dateModified" datetime="2019-04-20T14:24:45+08:00">2019-04-20</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/jvm/" itemprop="url" rel="index"><span itemprop="name">jvm</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="堆内存溢出"><a href="#堆内存溢出" class="headerlink" title="堆内存溢出"></a>堆内存溢出</h2><ul>
-<li><p>堆内存中主要存放对象、数组等，只要不断地创建这些对象，并且保证 GC Roots 到对象之间有可达路径来避免垃圾收集回收机制清除这些对象<br>当这些对象所占空间超过最大堆容量时，就会产生 OutOfMemoryError 的异常。堆内存异常示例如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 设置最大堆最小堆：-Xms20m -Xmx20m</span><br><span class="line"> * 运行时，不断在堆中创建OOMObject类的实例对象，且while执行结束之前，GC Roots(代码中的oomObjectList)到对象(每一个OOMObject对象)之间有可达路径，垃圾收集器就无法回收它们，最终导致内存溢出。</span><br><span class="line"> */</span><br><span class="line">public class HeapOOM &#123;</span><br><span class="line">    static class OOMObject &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        List&lt;OOMObject&gt; oomObjectList = new ArrayList&lt;&gt;();</span><br><span class="line">        while (true) &#123;</span><br><span class="line">            oomObjectList.add(new OOMObject());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>运行后会报异常，在堆栈信息中可以看到</p>
-<p>java.lang.OutOfMemoryError: Java heap space 的信息，说明在堆内存空间产生内存溢出的异常。</p>
-<p>新产生的对象最初分配在新生代，新生代满后会进行一次 Minor GC，如果 Minor GC 后空间不足会把该对象和新生代满足条件的对象放入老年代，老年代空间不足时会进行 Full GC，之后如果空间还不足以存放新对象则抛出 OutOfMemoryError 异常。</p>
-<p>常见原因：内存中加载的数据过多如一次从数据库中取出过多数据；集合对对象引用过多且使用完后没有清空；代码中存在死循环或循环产生过多重复对象；堆内存分配不合理；网络连接问题、数据库问题等</p>
-</li>
-</ul>
-<h2 id="虚拟机栈-本地方法栈溢出"><a href="#虚拟机栈-本地方法栈溢出" class="headerlink" title="虚拟机栈/本地方法栈溢出"></a>虚拟机栈/本地方法栈溢出</h2><ul>
-<li><p>StackOverflowError：当线程请求的栈的深度大于虚拟机所允许的最大深度，则抛出StackOverflowError，简单理解就是虚拟机栈中的栈帧数量过多（一个线程嵌套调用的方法数量过多）时，就会抛出StackOverflowError异常</p>
-<ul>
-<li>最常见就是方法无限递归调用<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 设置每个线程的栈大小：-Xss256k</span><br><span class="line"> * 运行时，不断调用doSomething()方法，main线程不断创建栈帧并入栈，导致栈的深度越来越大，最终导致栈溢出。</span><br><span class="line"> */</span><br><span class="line">public class StackSOF &#123;</span><br><span class="line">    private int stackLength=1;</span><br><span class="line">    public void doSomething()&#123;</span><br><span class="line">            stackLength++;</span><br><span class="line">            doSomething();</span><br><span class="line">    &#125;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        StackSOF stackSOF=new StackSOF();</span><br><span class="line">        try &#123;</span><br><span class="line">            stackSOF.doSomething();</span><br><span class="line">        &#125;catch (Throwable e)&#123;//注意捕获的是Throwable</span><br><span class="line">            System.out.println(&quot;栈深度：&quot;+stackSOF.stackLength);</span><br><span class="line">            throw e;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-<li><p>上述代码执行后抛出：Exception in thread “Thread-0” java.lang.StackOverflowError 的异常</p>
-</li>
-<li><p>OutOfMemoryError：如果虚拟机在扩展栈时无法申请到足够的内存空间，则抛出 OutOfMemoryError</p>
-<ul>
-<li>我们可以这样理解，虚拟机中可以供栈占用的空间≈可用物理内存 - 最大堆内存 - 最大方法区内存，比如一台机器内存为 4G，系统和其他应用占用 2G，虚拟机可用的物理内存为 2G，最大堆内存为 1G，最大方法区内存为 512M<br>那可供栈占有的内存大约就是 512M，假如我们设置每个线程栈的大小为 1M，那虚拟机中最多可以创建 512个线程，超过 512个线程再创建就没有空间可以给栈了，就报 OutOfMemoryError 异常了</li>
-</ul>
-<p><img src="/2018/06/23/jvm-jvm内存溢出分析/oomStack.png" alt="oomStack" title="Optional title"></p>
-<ul>
-<li>栈上能够产生 OutOfMemoryError 的示例如下：</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 设置每个线程的栈大小：-Xss2m</span><br><span class="line"> * 运行时，不断创建新的线程（且每个线程持续执行），每个线程对一个一个栈，最终没有多余的空间来为新的线程分配，导致OutOfMemoryError</span><br><span class="line"> */</span><br><span class="line">public class StackOOM &#123;</span><br><span class="line">    private static int threadNum = 0;</span><br><span class="line">    public void doSomething() &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            Thread.sleep(100000000);</span><br><span class="line">        &#125; catch (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        final StackOOM stackOOM = new StackOOM();</span><br><span class="line">        try &#123;</span><br><span class="line">            while (true) &#123;</span><br><span class="line">                threadNum++;</span><br><span class="line">                Thread thread = new Thread(new Runnable() &#123;</span><br><span class="line">                    @Override</span><br><span class="line">                    public void run() &#123;</span><br><span class="line">                        stackOOM.doSomething();</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line">                thread.start();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (Throwable e) &#123;</span><br><span class="line">            System.out.println(&quot;目前活动线程数量：&quot; + threadNum);</span><br><span class="line">            throw e;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li><p>上述代码运行后会报异常，在堆栈信息中可以看到 java.lang.OutOfMemoryError: unable to create new native thread 的信息，无法创建新的线程，说明是在扩展栈的时候产生的内存溢出异常</p>
-</li>
-<li><p>总结：在线程较少的时候，某个线程请求深度过大，会报 StackOverflow 异常，解决这种问题可以适当加大栈的深度（增加栈空间大小），也就是把 -Xss 的值设置大一些，但一般情况下是代码问题的可能性较大；在虚拟机产生线程时，无法为该线程申请栈空间了，会报 OutOfMemoryError 异常，解决这种问题可以适当减小栈的深度，也就是把 -Xss 的值设置小一些，每个线程占用的空间小了，总空间一定就能容纳更多的线程，但是操作系统对一个进程的线程数有限制，经验值在 3000~5000 左右。<br>在 jdk1.5 之前 -Xss 默认是 256k，jdk1.5 之后默认是 1M，这个选项对系统硬性还是蛮大的，设置时要根据实际情况，谨慎操作</p>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="方法区溢出"><a href="#方法区溢出" class="headerlink" title="方法区溢出"></a>方法区溢出</h2><ul>
-<li>前面说到，方法区主要用于存储虚拟机加载的类信息、常量、静态变量，以及编译器编译后的代码等数据，所以方法区溢出的原因就是没有足够的内存来存放这些数据</li>
-<li><p>由于在 jdk1.6 之前字符串常量池是存在于方法区中的，所以基于 jdk1.6 之前的虚拟机，可以通过不断产生不一致的字符串（同时要保证和 GC Roots 之间保证有可达路径）来模拟方法区的 OutOfMemoryError 异常；但方法区还存储加载的类信息，<br>所以基于 jdk1.7 的虚拟机，可以通过动态不断创建大量的类来模拟方法区溢出</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 设置方法区最大、最小空间：-XX:PermSize=10m -XX:MaxPermSize=10m</span><br><span class="line"> * 运行时，通过cglib不断创建JavaMethodAreaOOM的子类，方法区中类信息越来越多，最终没有可以为新的类分配的内存导致内存溢出</span><br><span class="line"> */</span><br><span class="line">public class JavaMethodAreaOOM &#123;</span><br><span class="line">    public static void main(final String[] args)&#123;</span><br><span class="line">       try &#123;</span><br><span class="line">           while (true)&#123;</span><br><span class="line">               Enhancer enhancer=new Enhancer();</span><br><span class="line">               enhancer.setSuperclass(JavaMethodAreaOOM.class);</span><br><span class="line">               enhancer.setUseCache(false);</span><br><span class="line">               enhancer.setCallback(new MethodInterceptor() &#123;</span><br><span class="line">                   @Override</span><br><span class="line">                   public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable &#123;</span><br><span class="line">                       return methodProxy.invokeSuper(o,objects);</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125;);</span><br><span class="line">               enhancer.create();</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;catch (Throwable t)&#123;</span><br><span class="line">           t.printStackTrace();</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>上述代码运行后会报 java.lang.OutOfMemoryError: PermGen space 的异常，说明是在方法区出现了内存溢出的错误</p>
-</li>
-</ul>
-<h2 id="本机直接内存溢出"><a href="#本机直接内存溢出" class="headerlink" title="本机直接内存溢出"></a>本机直接内存溢出</h2><ul>
-<li><p>本机直接内存（DirectMemory）并不是虚拟机运行时数据区的一部分，也不是 Java 虚拟机规范中定义的内存区域，但 Java 中用到 NIO 相关操作时（比如 ByteBuffer 的 allocteDirect 方法申请的是本机直接内存），也可能会出现内存溢出的异常</p>
-</li>
-<li><p>DirectMemory容量可通过-XX:MaxDirectMemorySize指定，如果不指定，默认与java堆的最大值Xmx一样。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * VM Args: -xmx20M -XX:MaxDirectMemorySize=10M</span><br><span class="line"> */</span><br><span class="line">public class DirectMemoryOOM&#123;</span><br><span class="line"></span><br><span class="line">   private static final int _1MB = 1024 * 1024 ;</span><br><span class="line">   </span><br><span class="line">   public static void main(String [] args)throws Exception&#123;</span><br><span class="line">   </span><br><span class="line">      Field unsafeFild = Unsafe.class.getDeclaredFields()[0];</span><br><span class="line">      unsafeField.setAccessible(true);</span><br><span class="line">      Unsafe unsafe = (Unsafe) unsafeFileld.get(null);</span><br><span class="line">      while(true)&#123;</span><br><span class="line">         unsafe.allocateMemory(_1MB);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>上述代码运行后会报 java.lang.OutOfMemoryError的异常，说明是在直接内存出现了内存溢出的错误</p>
-</li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>  <img src="/2018/06/23/jvm-jvm内存溢出分析/jvmStackTop.png" alt="jvmStackTop" title="Optional title"></p>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -3279,7 +3182,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">23</span>
+                    <span class="site-state-item-count">25</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -3316,7 +3219,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">10</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">12</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -3353,7 +3260,11 @@
                     
                       
                     
-                    <span class="site-state-item-count">10</span>
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">12</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -3423,6 +3334,10 @@
                   
                   
                     <li>
+                      <a href="/2019/04/03/interview-面试问题总结/" title="面试问题总结" target="_blank">面试问题总结</a>
+                    </li>
+                  
+                    <li>
                       <a href="/2018/11/10/distributed-分布式Session一致性解决方案/" title="分布式Session一致性解决方案" target="_blank">分布式Session一致性解决方案</a>
                     </li>
                   
@@ -3435,11 +3350,7 @@
                     </li>
                   
                     <li>
-                      <a href="/2018/08/04/并发-synchronized实现原理/" title="synchronized实现原理" target="_blank">synchronized实现原理</a>
-                    </li>
-                  
-                    <li>
-                      <a href="/2018/08/03/并发-volatile实现原理/" title="volatile实现原理" target="_blank">volatile实现原理</a>
+                      <a href="/2018/08/04/cocurrent-synchronized实现原理/" title="synchronized实现原理" target="_blank">synchronized实现原理</a>
                     </li>
                   
                 </ul>
