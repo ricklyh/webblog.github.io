@@ -814,6 +814,224 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2019/02/02/java-ThreadLocal原理分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Rick Liu">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar-user.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="每天进步一小点">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                
+                <a href="/2019/02/02/java-ThreadLocal原理分析/" class="post-title-link" itemprop="url">ThreadLocal原理分析</a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-02-02 23:30:03" itemprop="dateCreated datePublished" datetime="2019-02-02T23:30:03+08:00">2019-02-02</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-05-11 21:29:28" itemprop="dateModified" datetime="2019-05-11T21:29:28+08:00">2019-05-11</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/java/" itemprop="url" rel="index"><span itemprop="name">java</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="什么是ThreadLocal"><a href="#什么是ThreadLocal" class="headerlink" title="什么是ThreadLocal"></a>什么是ThreadLocal</h2><ul>
+<li>ThreadLocal提供了线程的局部变量，每个线程都可以通过set,get来对这个局部变量进行操作且不会影响其他线程的局部变量。防止冲突，实现线程的数据隔离，以到达线程的安全</li>
+</ul>
+<h2 id="ThreadLocal的使用"><a href="#ThreadLocal的使用" class="headerlink" title="ThreadLocal的使用"></a>ThreadLocal的使用</h2>   <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">public class ThreadLocalTest &#123;</span><br><span class="line"></span><br><span class="line">    //(1)打印函数</span><br><span class="line">    static void print(String str)&#123;</span><br><span class="line">        //1.1  打印当前线程本地内存中localVariable变量的值</span><br><span class="line">        System.out.println(str + &quot;:&quot; +localVariable.get());</span><br><span class="line">        //1.2 清除当前线程本地内存中localVariable变量</span><br><span class="line">        //localVariable.remove();</span><br><span class="line">    &#125;</span><br><span class="line">    //(2) 创建ThreadLocal变量</span><br><span class="line">    static ThreadLocal&lt;String&gt; localVariable = new ThreadLocal&lt;&gt;();</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line"></span><br><span class="line">        //(3) 创建线程one</span><br><span class="line">        Thread threadOne = new Thread(new  Runnable() &#123;</span><br><span class="line">            public void run() &#123;</span><br><span class="line">                //3.1 设置线程one中本地变量localVariable的值</span><br><span class="line">                localVariable.set(&quot;threadOne local variable&quot;);</span><br><span class="line">                //3.2 调用打印函数</span><br><span class="line">                print(&quot;threadOne&quot;);</span><br><span class="line">                //3.3打印本地变量值</span><br><span class="line">                System.out.println(&quot;threadOne remove after&quot; + &quot;:&quot; +localVariable.get());</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        //(4) 创建线程two</span><br><span class="line">        Thread threadTwo = new Thread(new  Runnable() &#123;</span><br><span class="line">            public void run() &#123;</span><br><span class="line">                //4.1 设置线程one中本地变量localVariable的值</span><br><span class="line">                localVariable.set(&quot;threadTwo local variable&quot;);</span><br><span class="line">                //4.2 调用打印函数</span><br><span class="line">                print(&quot;threadTwo&quot;);</span><br><span class="line">                //4.3打印本地变量值</span><br><span class="line">                System.out.println(&quot;threadTwo remove after&quot; + &quot;:&quot; +localVariable.get());</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        //(5)启动线程</span><br><span class="line">        threadOne.start();</span><br><span class="line">        threadTwo.start();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>运行结果：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">threadOne:threadOne local variable</span><br><span class="line">threadTwo:threadTwo local variable</span><br><span class="line">threadOne remove after:threadOne local variable</span><br><span class="line">threadTwo remove after:threadTwo local variable</span><br><span class="line"></span><br><span class="line">解开代码 1.2 的注释后，再次运行，运行结果为：</span><br><span class="line"></span><br><span class="line">threadOne:threadOne local variable</span><br><span class="line">threadOne remove after:null</span><br><span class="line">threadTwo:threadTwo local variable</span><br><span class="line">threadTwo remove after:null</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="ThreadLocal实现原理"><a href="#ThreadLocal实现原理" class="headerlink" title="ThreadLocal实现原理"></a>ThreadLocal实现原理</h2><p>   <img src="/2019/02/02/java-ThreadLocal原理分析/ThreadLocal.png" alt="ThreadLocal" title="Optional title"></p>
+<ul>
+<li>如上类图可知 Thread 类中有一个 threadLocals 和 inheritableThreadLocals 都是 ThreadLocalMap 类型的变量，而 ThreadLocalMap 是一个定制化的 Hashmap，默认每个线程中这个两个变量都为 null，只有当前线程第一次调用了 ThreadLocal 的 set 或者 get 方法时候才会进行创建</li>
+<li>其实每个线程的本地变量不是存放到 ThreadLocal 实例里面的，而是存放到调用线程的 threadLocals 变量里面。也就是说 ThreadLocal 类型的本地变量是存放到具体的线程内存空间的</li>
+<li>ThreadLocal 就是一个工具壳，它通过 set 方法把 value 值放入调用线程的 threadLocals 里面存放起来，当调用线程调用它的 get 方法时候再从当前线程的 threadLocals变 量里面拿出来使用</li>
+<li>如果调用线程一直不终止，那么这个本地变量会一直存放到调用线程的 threadLocals 变量里面，所以当不需要使用本地变量时候可以通过调用 ThreadLocal 变量的 remove 方法，从当前线程的 threadLocals 里面删除该本地变量。另外 Thread 里面的 threadLocals 为何设计为 map 结构呢？很明显是因为每个线程里面可以关联多个 ThreadLocal 变量</li>
+<li><p>下面简单分析下 ThreadLocal 的 set，get，remove 方法的实现逻辑：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">* void set(T value)</span><br><span class="line">    public void set(T value) &#123;</span><br><span class="line">        //(1)获取当前线程</span><br><span class="line">        Thread t = Thread.currentThread();</span><br><span class="line">        //(2)当前线程作为key，去查找对应的线程变量，找到则设置</span><br><span class="line">        ThreadLocalMap map = getMap(t);</span><br><span class="line">        if (map != null)</span><br><span class="line">            map.set(this, value);</span><br><span class="line">        else</span><br><span class="line">        //(3)第一次调用则创建当前线程对应的HashMap</span><br><span class="line">            createMap(t, value);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如上代码（1）首先获取调用线程，然后使用当前线程作为参数调用了 getMap(t) 方法，getMap(Thread t) 代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ThreadLocalMap getMap(Thread t) &#123;</span><br><span class="line">        return t.threadLocals;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>可知 getMap(t) 所做的就是获取线程自己的变量 threadLocals，threadlocal 变量是绑定到了线程的成员变量里面</p>
+</li>
+<li>如果 getMap(t) 返回不为空，则把 value 值设置进入到 threadLocals，也就是把当前变量值放入了当前线程的内存变量 threadLocals，threadLocals 是个 HashMap 结构，其中 key 就是当前 ThreadLocal 的实例对象引用，value 是通过 set 方法传递的值</li>
+<li><p>如果 getMap(t) 返回空那说明是第一次调用 set 方法，则创建当前线程的 threadLocals 变量</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">void createMap(Thread t, T firstValue) &#123;</span><br><span class="line">       t.threadLocals = new ThreadLocalMap(this, firstValue);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>T get()方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">public T get() &#123;</span><br><span class="line">        //(4) 获取当前线程</span><br><span class="line">        Thread t = Thread.currentThread();</span><br><span class="line">        //(5)获取当前线程的threadLocals变量</span><br><span class="line">        ThreadLocalMap map = getMap(t);</span><br><span class="line">        //(6)如果threadLocals不为null，则返回对应本地变量值</span><br><span class="line">        if (map != null) &#123;</span><br><span class="line">            ThreadLocalMap.Entry e = map.getEntry(this);</span><br><span class="line">            if (e != null) &#123;</span><br><span class="line">                @SuppressWarnings(&quot;unchecked&quot;)</span><br><span class="line">                T result = (T)e.value;</span><br><span class="line">                return result;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        //(7)threadLocals为空则初始化当前线程的threadLocals成员变量</span><br><span class="line">                return setInitialValue();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>首先获取当前线程实例，如果当前线程的 threadLocals 变量不为 null 则直接返回当前线程绑定的本地变量。否者执行代码（7）进行初始化，setInitialValue() 的代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">private T setInitialValue() &#123;</span><br><span class="line">        //(8)初始化为null</span><br><span class="line">        T value = initialValue();</span><br><span class="line">        Thread t = Thread.currentThread();</span><br><span class="line">        ThreadLocalMap map = getMap(t);</span><br><span class="line">        //(9)如果当前线程的threadLocals变量不为空</span><br><span class="line">        if (map != null)</span><br><span class="line">            map.set(this, value);</span><br><span class="line">        else</span><br><span class="line">        //(10)如果当前线程的threadLocals变量为空</span><br><span class="line">            createMap(t, value);</span><br><span class="line">        return value;</span><br><span class="line">    &#125;</span><br><span class="line">    protected T initialValue() &#123;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如上代码如果当前线程的 threadLocals 变量不为空，则设置当前线程的本地变量值为 null，否者调用 createMap 创建当前线程的 createMap 变量</p>
+</li>
+<li><p>T remove()方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public void remove() &#123;</span><br><span class="line">         ThreadLocalMap m = getMap(Thread.currentThread());</span><br><span class="line">         if (m != null)</span><br><span class="line">             m.remove(this);</span><br><span class="line">     &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果当前线程的 threadLocals 变量不为空，则删除当前线程中指定 ThreadLocal 实例的本地变量</p>
+</li>
+<li><h3 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h3><ul>
+<li>每个线程内部都有一个名字为 threadLocals 的成员变量，该变量类型为 HashMap，其中 key 为我们定义的 ThreadLocal 变量的 this 引用，value 则为我们 set 时候的值</li>
+<li>每个线程的本地变量是存到线程自己的内存变量 threadLocals 里面的，如果当前线程一直不消失那么这些本地变量会一直存到，所以可能会造成内存泄露</li>
+<li>所以使用完毕后要记得调用 ThreadLocal 的 remove 方法删除对应线程的 threadLocals 中的本地变量</li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/11/14/distributed-高并发详解/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2224,259 +2442,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/08/03/cocurrent-volatile实现原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Rick Liu">
-      <meta itemprop="description" content>
-      <meta itemprop="image" content="/images/avatar-user.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="每天进步一小点">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                
-                <a href="/2018/08/03/cocurrent-volatile实现原理/" class="post-title-link" itemprop="url">volatile实现原理</a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2018-08-03 23:22:04" itemprop="dateCreated datePublished" datetime="2018-08-03T23:22:04+08:00">2018-08-03</time>
-            
-
-            
-              
-
-              
-                
-                <span class="post-meta-divider">|</span>
-                
-
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">更新于</span>
-                
-                <time title="修改时间：2019-04-29 09:41:05" itemprop="dateModified" datetime="2019-04-29T09:41:05+08:00">2019-04-29</time>
-              
-            
-          </span>
-
-          
-            <span class="post-category">
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/cocurrent/" itemprop="url" rel="index"><span itemprop="name">cocurrent</span></a></span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="Volatile含义"><a href="#Volatile含义" class="headerlink" title="Volatile含义"></a>Volatile含义</h2><ul>
-<li>在Java多线程并发编程中，volatile关键词扮演着重要角色，它是轻量级的synchronized，在多处理器开发中保证了共享变量的“可见性”。“可见性”的意思是当一个线程修改一个共享变量时，另外一个线程能读到这个修改的值。如果一个字段被声明为volatile，Java线程内存模型确保所有线程看到这个变量的值是一致的。与synchronized不同，volatile变量不会引起线程上下文的切换和调度，在适合的场景下拥有更低的执行成本和更高的效率</li>
-</ul>
-<h2 id="CPU缓存"><a href="#CPU缓存" class="headerlink" title="CPU缓存"></a>CPU缓存</h2><ul>
-<li>CPU缓存的出现主要是为了解决CPU运算速度与内存读写速度不匹配的矛盾，因为CPU运算速度要比内存读写速度快得多，举个例子：<ul>
-<li>一次主内存的访问通常在几十到几百个时钟周期</li>
-<li>一次L1高速缓存的读写只需要1~2个时钟周期</li>
-<li>一次L2高速缓存的读写也只需要数十个时钟周期</li>
-</ul>
-</li>
-<li><p>这种访问速度的显著差异，导致CPU可能会花费很长时间等待数据到来或把数据写入内存</p>
-</li>
-<li><p>基于此，现在CPU大多数情况下读写都不会直接访问内存（CPU都没有连接到内存的管脚），取而代之的是CPU缓存，CPU缓存是位于CPU与内存之间的临时存储器，它的容量比内存小得多但是交换速度却比内存快得多。而缓存中的数据是内存中的一小部分数据，但这一小部分是短时间内CPU即将访问的，当CPU调用大量数据时，就可先从缓存中读取，从而加快读取速度</p>
-</li>
-<li><p>按照读取顺序与CPU结合的紧密程度，CPU缓存可分为：</p>
-<ul>
-<li>一级缓存：简称L1 Cache，位于CPU内核的旁边，是与CPU结合最为紧密的CPU缓存。</li>
-<li>二级缓存：简称L2 Cache，分内部和外部两种芯片，内部芯片二级缓存运行速度与主频相同，外部芯片二级缓存运行速度则只有主频的一半。</li>
-<li>三级缓存：简称L3 Cache，部分高端CPU才有</li>
-</ul>
-</li>
-<li><p>每一级缓存中所存储的数据全部都是下一级缓存中的一部分，这三种缓存的技术难度和制造成本是相对递减的，所以其容量也相对递增  </p>
-</li>
-<li><p>当CPU要读取一个数据时，首先从一级缓存中查找，如果没有再从二级缓存中查找，如果还是没有再从三级缓存中或内存中查找。一般来说每级缓存的命中率大概都有80%左右，也就是说全部数据量的80%都可以在一级缓存中找到，只剩下20%的总数据量才需要从二级缓存、三级缓存或内存中读取</p>
-</li>
-</ul>
-<h2 id="CPU缓存带来的问题"><a href="#CPU缓存带来的问题" class="headerlink" title="CPU缓存带来的问题"></a>CPU缓存带来的问题</h2><ul>
-<li>用一张图表示一下 CPU –&gt; CPU缓存 –&gt; 主内存 数据读取之间的关系：<br><img src="/2018/08/03/cocurrent-volatile实现原理/cpu1.png" alt="cache" title="Optional title">  </li>
-<li><p>当系统运行时，CPU执行计算的过程如下：</p>
-<ul>
-<li>程序以及数据被加载到主内存</li>
-<li>指令和数据被加载到CPU缓存</li>
-<li>CPU执行指令，把结果写到高速缓存</li>
-<li>高速缓存中的数据写回主内存</li>
-</ul>
-</li>
-<li><p>如果服务器是单核CPU，那么这些步骤不会有任何的问题，但是如果服务器是多核CPU，那么问题来了，以Intel Core i7处理器的高速缓存概念模型为例（图片来自《深入理解计算机系<br><img src="/2018/08/03/cocurrent-volatile实现原理/cpu2.png" alt="cache" title="Optional title"> </p>
-</li>
-<li><p>试想下面一种情况：</p>
-<ul>
-<li>核0读取了一个字节，根据局部性原理，它相邻的字节同样被被读入核0的缓存</li>
-<li>核3做了上面同样的工作，这样核0与核3的缓存拥有同样的数据</li>
-<li>核0修改了那个字节，被修改后，那个字节被写回核0的缓存，但是该信息并没有写回主存</li>
-<li>核3访问该字节，由于核0并未将数据写回主存，数据不同步</li>
-</ul>
-</li>
-<li><p>为了解决这一问题，CPU制造商规定了一个缓存一致性协议</p>
-</li>
-</ul>
-<h2 id="缓存一致性协议"><a href="#缓存一致性协议" class="headerlink" title="缓存一致性协议"></a>缓存一致性协议</h2><ul>
-<li>每个CPU都有一级缓存，但是，我们却无法保证每个CPU的一级缓存数据都是一样的。 所以同一个程序，CPU进行切换的时候，切换前和切换后的数据可能会有不一致的情况。那么这个就是一个很大的问题了。 如何保证各个CPU缓存中的数据是一致的。就是CPU的缓存一致性问题</li>
-</ul>
-<h3 id="总线锁"><a href="#总线锁" class="headerlink" title="总线锁"></a>总线锁</h3><ul>
-<li><p>一种处理一致性问题的办法是使用Bus Locking（总线锁）。当一个CPU对其缓存中的数据进行操作的时候，往总线中发送一个Lock信号。 这个时候，所有CPU收到这个信号之后就不操作自己缓存中的对应数据了，当操作结束，释放锁以后，所有的CPU就去内存中获取最新数据更新。</p>
-</li>
-<li><p>但是用锁的方式总是避不开性能问题。总线锁总是会导致CPU的性能下降。所以出现另外一种维护CPU缓存一致性的方式，MESI   </p>
-</li>
-</ul>
-<h3 id="MESI"><a href="#MESI" class="headerlink" title="MESI"></a>MESI</h3><ul>
-<li><p>MESI是保持一致性的协议。它的方法是在CPU缓存中保存一个标记位，这个标记位有四种状态:</p>
-<ul>
-<li>M: Modify，修改缓存，当前CPU的缓存已经被修改了，即与内存中数据已经不一致了；</li>
-<li>E: Exclusive，独占缓存，当前CPU的缓存和内存中数据保持一致，而且其他处理器并没有可使用的缓存数据；</li>
-<li>S: Share，共享缓存，和内存保持一致的一份拷贝，多组缓存可以同时拥有针对同一内存地址的共享缓存段；</li>
-<li>I: Invalid，失效缓存，这个说明CPU中的缓存已经不能使用了</li>
-</ul>
-</li>
-<li><p>CPU的读取遵循下面几点：</p>
-<ul>
-<li>如果缓存状态是I，那么就从内存中读取，否则就从缓存中直接读取。</li>
-<li>如果缓存处于M或E的CPU读取到其他CPU有读操作，就把自己的缓存写入到内存中，并将自己的状态设置为S。</li>
-<li>只有缓存状态是M或E的时候，CPU才可以修改缓存中的数据，修改后，缓存状态变为M</li>
-</ul>
-</li>
-<li><p>这样，每个CPU都遵循上面的方式则CPU的效率就提高上来了</p>
-</li>
-</ul>
-<h2 id="volatile两大作用"><a href="#volatile两大作用" class="headerlink" title="volatile两大作用"></a>volatile两大作用</h2><ul>
-<li>保证内存可见性</li>
-<li>防止指令重排</li>
-</ul>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-      
-    
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://mocwe.com/2018/08/03/redis-redis入门实战/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2763,7 +2728,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">26</span>
+                    <span class="site-state-item-count">29</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2806,7 +2771,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">13</span>
+                      
+                    
+                    <span class="site-state-item-count">14</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -2849,7 +2816,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">13</span>
+                      
+                    
+                    <span class="site-state-item-count">14</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -2927,15 +2896,15 @@
                     </li>
                   
                     <li>
+                      <a href="/2019/02/02/java-ThreadLocal原理分析/" title="ThreadLocal原理分析" target="_blank">ThreadLocal原理分析</a>
+                    </li>
+                  
+                    <li>
                       <a href="/2018/11/14/distributed-高并发详解/" title="高并发详解" target="_blank">高并发详解</a>
                     </li>
                   
                     <li>
                       <a href="/2018/11/14/network-理解OSI七层模型/" title="理解OSI七层模型" target="_blank">理解OSI七层模型</a>
-                    </li>
-                  
-                    <li>
-                      <a href="/2018/11/10/distributed-分布式Session一致性解决方案/" title="分布式Session一致性解决方案" target="_blank">分布式Session一致性解决方案</a>
                     </li>
                   
                 </ul>
