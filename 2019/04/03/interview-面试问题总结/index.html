@@ -104,7 +104,7 @@
 <meta property="og:site_name" content="每天进步一小点">
 <meta property="og:description" content="前言 相信大家在面试过程中，都会经历面试官一些问题答复，或多或少会有一些答不出来或者答的不好。其实面试过程就好比一次技术的交流，或者说是一次自我的技术检查，其实面试管对面试者的技术面试是看我们在工作中解决问题的思路与能，所以面试者需要认真对待每一次面试，我们都需要在面试中成长。所以我们需要做到如下几点： 面试过程中遇到不会的问题，需要铭刻记住，以便回来之后对技术的补充和复习 尽量对不会的问题做到表">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-04-30T13:47:31.294Z">
+<meta property="og:updated_time" content="2019-05-10T14:50:31.587Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="面试问题总结">
 <meta name="twitter:description" content="前言 相信大家在面试过程中，都会经历面试官一些问题答复，或多或少会有一些答不出来或者答的不好。其实面试过程就好比一次技术的交流，或者说是一次自我的技术检查，其实面试管对面试者的技术面试是看我们在工作中解决问题的思路与能，所以面试者需要认真对待每一次面试，我们都需要在面试中成长。所以我们需要做到如下几点： 面试过程中遇到不会的问题，需要铭刻记住，以便回来之后对技术的补充和复习 尽量对不会的问题做到表">
@@ -405,7 +405,7 @@
                 
                   <span class="post-meta-item-text">更新于</span>
                 
-                <time title="修改时间：2019-04-30 21:47:31" itemprop="dateModified" datetime="2019-04-30T21:47:31+08:00">2019-04-30</time>
+                <time title="修改时间：2019-05-10 22:50:31" itemprop="dateModified" datetime="2019-05-10T22:50:31+08:00">2019-05-10</time>
               
             
           </span>
@@ -497,7 +497,23 @@
 </li>
 </ul>
 <h3 id="MQ消息队列"><a href="#MQ消息队列" class="headerlink" title="MQ消息队列"></a>MQ消息队列</h3><ul>
-<li>mq消息队列如何实现幂等性的？ </li>
+<li><p>mq消息队列如何实现幂等性的？</p>
+<ul>
+<li>在消费者业务处理或者业务设计中，如果消息已经被消费，可更改实体状态（根据msgId区分），如果更新过，则不进行重复处理业务</li>
+</ul>
+</li>
+<li><p>mq如何保证有序性？</p>
+<ul>
+<li>场景分析：比如异步执行业务，发送2条消息，且处理业务是，先增加，修改，删除。但在并发情况下（消费者不止一个）那么如何保证业务的执行顺序呢？</li>
+<li>解决方案：<ul>
+<li>如果是同步肯定不存在，异步且高并发，可针对业务执行顺序，分别使用不同的消息队列。在业务逻辑处理时，可对顺序进行控制</li>
+<li>可在消息体中加入版本号 &amp; 状态机 &amp; msgid &amp; parent_msgid，通过 parent_msgid 判断消息的顺序（需要全局存储，记录消息的执行状态）</li>
+</ul>
+</li>
+<li>缺点：因为要求业务顺序，我们在业务处理中，需要额外的io或者内存资源来对顺序业务的处理，导致一部分性能降低，这也是MQ不提高顺序性的理由之一</li>
+<li>总结：有没有一种可能，我们在设计业务的时候是否可以避免有序执行业务，从而提高程序执行性能</li>
+</ul>
+</li>
 </ul>
 <h3 id="zookeeper"><a href="#zookeeper" class="headerlink" title="zookeeper"></a>zookeeper</h3><ul>
 <li>zookeeper Leader选举原理？</li>
@@ -523,6 +539,9 @@
 <li>拦截器是一个Spring的组件，归Spring管理，配置在Spring文件中，因此能使用Spring里的任何资源、对象，例如 Service对象、数据源、事务管理等，通过IoC注入到拦截器即可</li>
 </ul>
 </li>
+</ul>
+<h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><ul>
+<li>索引的使用</li>
 </ul>
 
       
@@ -560,8 +579,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/11/10/distributed-分布式Session一致性解决方案/" rel="next" title="分布式Session一致性解决方案">
-                <i class="fa fa-chevron-left"></i> 分布式Session一致性解决方案
+              <a href="/2019/04/03/zookeeper-Leader选举原理/" rel="next" title="Leader选举原理">
+                <i class="fa fa-chevron-left"></i> Leader选举原理
               </a>
             
           </div>
@@ -639,7 +658,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-count">26</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -680,7 +699,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">12</span>
+                      
+                    
+                    <span class="site-state-item-count">13</span>
                     <span class="site-state-item-name">分类</span>
                   </a>
                 </div>
@@ -721,7 +742,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">12</span>
+                      
+                    
+                    <span class="site-state-item-count">13</span>
                     <span class="site-state-item-name">标签</span>
                   </a>
                 </div>
@@ -795,19 +818,19 @@
                     </li>
                   
                     <li>
+                      <a href="/2019/04/03/zookeeper-Leader选举原理/" title="Leader选举原理" target="_blank">Leader选举原理</a>
+                    </li>
+                  
+                    <li>
+                      <a href="/2018/11/14/distributed-高并发详解/" title="高并发详解" target="_blank">高并发详解</a>
+                    </li>
+                  
+                    <li>
+                      <a href="/2018/11/14/network-理解OSI七层模型/" title="理解OSI七层模型" target="_blank">理解OSI七层模型</a>
+                    </li>
+                  
+                    <li>
                       <a href="/2018/11/10/distributed-分布式Session一致性解决方案/" title="分布式Session一致性解决方案" target="_blank">分布式Session一致性解决方案</a>
-                    </li>
-                  
-                    <li>
-                      <a href="/2018/08/14/MQ-RabbitMQ入门/" title="RabbitMQ入门" target="_blank">RabbitMQ入门</a>
-                    </li>
-                  
-                    <li>
-                      <a href="/2018/08/12/mysql-mysql事务级别/" title="mysql事务级别" target="_blank">mysql事务级别</a>
-                    </li>
-                  
-                    <li>
-                      <a href="/2018/08/04/cocurrent-synchronized实现原理/" title="synchronized实现原理" target="_blank">synchronized实现原理</a>
                     </li>
                   
                 </ul>
@@ -833,7 +856,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#面试问题"><span class="nav-number">2.</span> <span class="nav-text">面试问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#redis"><span class="nav-number">2.1.</span> <span class="nav-text">redis</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ消息队列"><span class="nav-number">2.2.</span> <span class="nav-text">MQ消息队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#zookeeper"><span class="nav-number">2.3.</span> <span class="nav-text">zookeeper</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#spring-mvc"><span class="nav-number">2.4.</span> <span class="nav-text">spring mvc</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#过滤器："><span class="nav-number">2.4.1.</span> <span class="nav-text">过滤器：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#拦截器："><span class="nav-number">2.4.2.</span> <span class="nav-text">拦截器：</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#面试问题"><span class="nav-number">2.</span> <span class="nav-text">面试问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#redis"><span class="nav-number">2.1.</span> <span class="nav-text">redis</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MQ消息队列"><span class="nav-number">2.2.</span> <span class="nav-text">MQ消息队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#zookeeper"><span class="nav-number">2.3.</span> <span class="nav-text">zookeeper</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#spring-mvc"><span class="nav-number">2.4.</span> <span class="nav-text">spring mvc</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#过滤器："><span class="nav-number">2.4.1.</span> <span class="nav-text">过滤器：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#拦截器："><span class="nav-number">2.4.2.</span> <span class="nav-text">拦截器：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql"><span class="nav-number">2.5.</span> <span class="nav-text">mysql</span></a></li></ol></li></ol></div>
             
 
           </div>
